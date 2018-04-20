@@ -16,6 +16,10 @@ from hammer_vlsi import HammerVLSILogging
 
 
 class ICC(HammerPlaceAndRouteTool, SynopsysTool):
+    def fill_outputs(self) -> bool:
+        # TODO: implement
+        return True
+
     @property
     def steps(self) -> List[HammerToolStep]:
         return self.make_steps_from_methods([

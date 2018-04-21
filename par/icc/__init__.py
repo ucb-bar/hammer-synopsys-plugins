@@ -459,4 +459,4 @@ $ICC_HOME/bin/icc_shell -gui -f generated-scripts/open_chip.tcl
         return True
 
 
-tool = ICC()
+tool = ICC

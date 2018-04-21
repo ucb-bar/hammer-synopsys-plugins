@@ -147,4 +147,4 @@ class DC(HammerSynthesisTool, SynopsysTool):
         return True
 
 
-tool = DC()
+tool = DC

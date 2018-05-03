@@ -96,6 +96,13 @@ class DC(HammerSynthesisTool, SynopsysTool):
         if not self.check_input_files([".v", ".sv"]):
             return False
 
+        input_files = list(self.input_files)  # type: List[str]
+        # Add any verilog_synth wrappers (which are needed in some technologies e.g. for SRAMs) which need to be
+        # synthesized.
+        input_files += self.read_libs([
+            self.verilog_synth_filter
+        ], self.to_plain_item)
+
         # Generate preferred_routing_directions.
         preferred_routing_directions_fragment = os.path.join(self.run_dir, "preferred_routing_directions.tcl")
         with open(preferred_routing_directions_fragment, "w") as f:
@@ -134,7 +141,7 @@ class DC(HammerSynthesisTool, SynopsysTool):
             "--run_dir", self.run_dir,
             "--top", self.top_module
         ]
-        args.extend(self.input_files)  # We asserted these are Verilog above
+        args.extend(input_files)  # We asserted these are Verilog above
         args.extend(lib_args)
 
         # Temporarily disable colours/tag to make DC run output more readable.

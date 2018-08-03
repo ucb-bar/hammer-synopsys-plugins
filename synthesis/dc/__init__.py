@@ -9,7 +9,7 @@ from typing import List
 
 from hammer_vlsi import HammerSynthesisTool, HammerToolStep
 from hammer_vlsi import SynopsysTool
-from hammer_vlsi import HammerVLSILogging
+from hammer_logging import HammerVLSILogging
 
 import os
 import re

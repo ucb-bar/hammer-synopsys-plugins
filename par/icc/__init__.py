@@ -12,7 +12,7 @@ from typing import List
 
 from hammer_vlsi import HammerPlaceAndRouteTool, HammerToolStep
 from hammer_vlsi import SynopsysTool
-from hammer_vlsi import HammerVLSILogging
+from hammer_logging import HammerVLSILogging
 
 
 class ICC(HammerPlaceAndRouteTool, SynopsysTool):

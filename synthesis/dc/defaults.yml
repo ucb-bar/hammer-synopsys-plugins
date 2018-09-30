@@ -5,7 +5,7 @@ synthesis.dc:
   dc_bin_meta: dynamicsubst # we want later overrides to be able to affect dc_bin
 
   # DC version to use.
-  dc_version: "L-2016.03-SP1"
+  version: "L-2016.03-SP1"
 
   # Enable congestion map generation.
   # Causes a GUI session to be temporarily opened, which requires a graphical

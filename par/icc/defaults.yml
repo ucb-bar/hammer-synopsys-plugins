@@ -8,7 +8,7 @@ par.icc:
   icc_bin_meta: dynamicsubst # we want later overrides to be able to affect icc_bin
 
   # DC version to use.
-  icc_version: "L-2016.03-SP1"
+  version: "L-2016.03-SP1"
 
   # Path to a folder with files to copy.
   # e.g. if a folder named "src" is specified here, then the contents of

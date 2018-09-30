@@ -26,6 +26,9 @@ class ICC(HammerPlaceAndRouteTool, SynopsysTool):
             self.main_step
         ])
 
+    def tool_config_prefix(self) -> str:
+        return "par.icc"
+
     def main_step(self) -> bool:
         # Locate reference methodology tarball.
         synopsys_rm_tarball = self.get_synopsys_rm_tarball("ICC")

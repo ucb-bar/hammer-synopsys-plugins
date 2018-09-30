@@ -31,6 +31,9 @@ class DC(HammerSynthesisTool, SynopsysTool):
             self.main_step
         ])
 
+    def tool_config_prefix(self) -> str:
+        return "synthesis.dc"
+
     # TODO(edwardw): move this to synopsys common
     def generate_tcl_preferred_routing_direction(self):
         """

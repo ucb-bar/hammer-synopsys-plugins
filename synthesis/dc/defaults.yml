@@ -2,7 +2,7 @@
 synthesis.dc:
   # Location of the DC binary.
   dc_bin: "${synopsys.synopsys_home}/syn/${synthesis.dc.dc_version}/bin/dc_shell"
-  dc_bin_meta: dynamicsubst # we want later overrides to be able to affect dc_bin
+  dc_bin_meta: lazysubst # we want later overrides to be able to affect dc_bin
 
   # DC version to use.
   version: "L-2016.03-SP1"

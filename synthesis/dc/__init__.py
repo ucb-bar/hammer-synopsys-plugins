@@ -105,7 +105,7 @@ class DC(HammerSynthesisTool, SynopsysTool):
         # synthesized.
         input_files += self.technology.read_libs([
             hammer_tech.filters.verilog_synth_filter
-        ], self.to_plain_item)
+        ], hammer_tech.HammerTechnologyUtils.to_plain_item)
 
         # Generate preferred_routing_directions.
         preferred_routing_directions_fragment = os.path.join(self.run_dir, "preferred_routing_directions.tcl")
@@ -124,7 +124,7 @@ class DC(HammerSynthesisTool, SynopsysTool):
             hammer_tech.filters.tlu_max_cap_filter._replace(tag="tlu_max"),
             hammer_tech.filters.tlu_min_cap_filter._replace(tag="tlu_min"),
             hammer_tech.filters.milkyway_techfile_filter._replace(tag="tf")
-        ], self.to_command_line_args)
+        ], hammer_tech.HammerTechnologyUtils.to_command_line_args)
 
         # Pre-extract the tarball (so that we can make TCL modifications in Python)
         self.run_executable([

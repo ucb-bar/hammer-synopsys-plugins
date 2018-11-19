@@ -10,10 +10,11 @@ from shutil import copyfile
 from os.path import dirname
 from typing import List
 
+import hammer_tech
 from hammer_vlsi import HammerPlaceAndRouteTool, HammerToolStep
 from hammer_vlsi import SynopsysTool
 from hammer_logging import HammerVLSILogging
-
+from hammer_tech import HammerTechnologyUtils
 
 class ICC(HammerPlaceAndRouteTool, SynopsysTool):
     def fill_outputs(self) -> bool:
@@ -86,11 +87,11 @@ export SNPSLMD_LICENSE_FILE="{snps}"
 #~ fi
 
         # Gather/load libraries.
-        timing_dbs = ' '.join(self.read_libs([self.timing_db_filter], self.to_plain_item))
-        milkyway_lib_dirs = ' '.join(self.read_libs([self.milkyway_lib_dir_filter], self.to_plain_item))
-        milkyway_techfiles = ' '.join(self.read_libs([self.milkyway_techfile_filter], self.to_plain_item))
-        tlu_max_caps = ' '.join(self.read_libs([self.tlu_max_cap_filter], self.to_plain_item))
-        tlu_min_caps = ' '.join(self.read_libs([self.tlu_min_cap_filter], self.to_plain_item))
+        timing_dbs = ' '.join(self.technology.read_libs([hammer_tech.filters.timing_db_filter], HammerTechnologyUtils.to_plain_item))
+        milkyway_lib_dirs = ' '.join(self.technology.read_libs([hammer_tech.filters.milkyway_lib_dir_filter], HammerTechnologyUtils.to_plain_item))
+        milkyway_techfiles = ' '.join(self.technology.read_libs([hammer_tech.filters.milkyway_techfile_filter], HammerTechnologyUtils.to_plain_item))
+        tlu_max_caps = ' '.join(self.technology.read_libs([hammer_tech.filters.tlu_max_cap_filter], HammerTechnologyUtils.to_plain_item))
+        tlu_min_caps = ' '.join(self.technology.read_libs([hammer_tech.filters.tlu_min_cap_filter], HammerTechnologyUtils.to_plain_item))
 
         if timing_dbs == "":
             self.logger.error("No timing dbs (libs) specified!")

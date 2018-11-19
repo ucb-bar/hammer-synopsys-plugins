@@ -4,7 +4,7 @@
 
 par.icc:
   # Location of the ICC binary.
-  icc_bin: "${synopsys.synopsys_home}/icc/${par.icc.icc_version}/bin/icc_shell"
+  icc_bin: "${synopsys.synopsys_home}/icc/${par.icc.version}/bin/icc_shell"
   icc_bin_meta: lazysubst # we want later overrides to be able to affect icc_bin
 
   # DC version to use.

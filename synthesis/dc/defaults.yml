@@ -17,6 +17,10 @@ synthesis.dc:
   # specified instead of DC's own load detection.
   disable_multicore_resource_checks: true
 
+  # compile_ultra arguments.
+  # TODO: remove this and generate this in the Python plugin?
+  compile_args: []
+
 # Common synopsys settings.
 # TODO: move these to a shared file between ICC and DC.
 synopsys:

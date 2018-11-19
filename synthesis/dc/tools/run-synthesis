@@ -14,6 +14,7 @@ milkyway=()
 tf=()
 tlu_max=()
 tlu_min=()
+tlu_map=()
 unset top
 compile_args=('')
 while [[ "$1" != "" ]]
@@ -33,6 +34,7 @@ do
     --tf) tf+=("$2"); shift;;
     --tlu_max) tlu_max+=("$2"); shift;;
     --tlu_min) tlu_min+=("$2"); shift;;
+    --tlu_map) tlu_map+=("$2"); shift;;
     --top) top="$2"; shift;;
     --compile_arg) compile_args+=("$2"); shift;; # TODO: implement this one in __init__.py
 
@@ -99,7 +101,7 @@ find $run_dir -iname "*.tcl" | xargs sed s/'^compile_ultra \(.*\)'/"compile_ultr
 find $run_dir -iname "*.tcl" | xargs sed s/'^compile_ultra \(.*\)'/'compile_ultra -check_only \1\ncompile_ultra \1'/g -i
 
 # Report more timing arcs
-sed 's@^report_timing@report_timing -max_paths 500 -nworst 10 -slack_lesser_than 0.01@' -i $run_dir/rm_dc_scripts/dc.tcl
+sed 's@^report_timing@report_timing -max_paths 500 -nworst 10 -input_pins -capacitance -significant_digits 4@' -i $run_dir/rm_dc_scripts/dc.tcl
 
 # Unfortunately I need to support both Verilog and VHDL.
 find $run_dir -iname "*.tcl" | xargs sed 's/RTL_SOURCE_FILES/RTL_SOURCE_FILES_VERILOG/g' -i
@@ -133,7 +135,6 @@ max_threads=$(get-config vlsi.core.max_threads)
 # sets all the input files and such.
 mkdir -p $run_dir/rm_setup
 
-# TODO: find a way to specify tlu+ mapfile.
 cat >> $run_dir/rm_setup/common_setup.tcl <<EOF
 set DESIGN_NAME "$top";
 set RTL_SOURCE_FILES_VERILOG "$(readlink_array ${v[@]})";
@@ -156,6 +157,12 @@ set_host_options -max_cores ${max_threads}
 # Provide verbose error messages
 set power_sa_propagation_verbose true
 EOF
+
+if [[ ${#tlu_map[@]} -ne 0 ]]; then
+    cat >> $run_dir/rm_setup/common_setup.tcl <<EOF
+set MAP_FILE "${tlu_map[@]}";
+EOF
+fi
 
 disable_multicore_resource_checks=$(get-config synthesis.dc.disable_multicore_resource_checks)
 if [[ "$disable_multicore_resource_checks" == "True" ]] || [[ "$disable_multicore_resource_checks" == "true" ]]; then

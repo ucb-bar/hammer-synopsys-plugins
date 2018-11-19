@@ -5,16 +5,14 @@
 #
 #  Copyright 2017-2018 Edward Wang <edward.c.wang@compdigitec.com>
 
-from typing import List
+from typing import List, Optional
 
 from hammer_vlsi import HammerSynthesisTool, HammerToolStep
 from hammer_vlsi import SynopsysTool
 from hammer_logging import HammerVLSILogging
-import hammer_tech
 
 import os
 import re
-
 
 class DC(HammerSynthesisTool, SynopsysTool):
     def fill_outputs(self) -> bool:
@@ -34,6 +32,11 @@ class DC(HammerSynthesisTool, SynopsysTool):
 
     def tool_config_prefix(self) -> str:
         return "synthesis.dc"
+
+    ## FIXME: this is abstract by SynopsysTool
+    @property
+    def post_synth_sdc(self) -> Optional[str]:
+      return None
 
     # TODO(edwardw): move this to synopsys common
     def generate_tcl_preferred_routing_direction(self):
@@ -103,9 +106,9 @@ class DC(HammerSynthesisTool, SynopsysTool):
         input_files = list(self.input_files)  # type: List[str]
         # Add any verilog_synth wrappers (which are needed in some technologies e.g. for SRAMs) which need to be
         # synthesized.
-        input_files += self.technology.read_libs([
-            hammer_tech.filters.verilog_synth_filter
-        ], hammer_tech.HammerTechnologyUtils.to_plain_item)
+        input_files += self.read_libs([
+            self.verilog_synth_filter
+        ], self.to_plain_item)
 
         # Generate preferred_routing_directions.
         preferred_routing_directions_fragment = os.path.join(self.run_dir, "preferred_routing_directions.tcl")
@@ -118,13 +121,14 @@ class DC(HammerSynthesisTool, SynopsysTool):
             f.write(self.sdc_clock_constraints)
 
         # Get libraries.
-        lib_args = self.technology.read_libs([
-            hammer_tech.filters.timing_db_filter._replace(tag="lib"),
-            hammer_tech.filters.milkyway_lib_dir_filter._replace(tag="milkyway"),
-            hammer_tech.filters.tlu_max_cap_filter._replace(tag="tlu_max"),
-            hammer_tech.filters.tlu_min_cap_filter._replace(tag="tlu_min"),
-            hammer_tech.filters.milkyway_techfile_filter._replace(tag="tf")
-        ], hammer_tech.HammerTechnologyUtils.to_command_line_args)
+        lib_args = self.read_libs([
+            self.timing_db_filter._replace(tag="lib"),
+            self.milkyway_lib_dir_filter._replace(tag="milkyway"),
+            self.tlu_max_cap_filter._replace(tag="tlu_max"),
+            self.tlu_min_cap_filter._replace(tag="tlu_min"),
+            self.tlu_map_file_filter._replace(tag="tlu_map"),
+            self.milkyway_techfile_filter._replace(tag="tf")
+        ], self.to_command_line_args)
 
         # Pre-extract the tarball (so that we can make TCL modifications in Python)
         self.run_executable([
@@ -134,6 +138,10 @@ class DC(HammerSynthesisTool, SynopsysTool):
         # Disable the DC congestion map if needed.
         if not self.get_setting("synthesis.dc.enable_congestion_map"):
             self.disable_congestion_map()
+
+        compile_args = self.get_setting("synthesis.dc.compile_args")
+        if not compile_args:
+          compile_args = []
 
         # Build args.
         args = [
@@ -147,6 +155,8 @@ class DC(HammerSynthesisTool, SynopsysTool):
         ]
         args.extend(input_files)  # We asserted these are Verilog above
         args.extend(lib_args)
+        for compile_arg in compile_args:
+          args.extend(["--compile_arg", compile_arg])
 
         # Temporarily disable colours/tag to make DC run output more readable.
         # TODO: think of a more elegant way to do this?

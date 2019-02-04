@@ -3,7 +3,7 @@
 #
 #  hammer-vlsi plugin for Synopsys DC.
 #
-#  Copyright 2017-2018 Edward Wang <edward.c.wang@compdigitec.com>
+#  See LICENSE for licence details.
 
 from typing import List, Optional
 

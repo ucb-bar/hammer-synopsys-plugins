@@ -3,7 +3,7 @@
 #
 #  hammer-vlsi plugin for Synopsys ICC.
 #
-#  Copyright 2017-2018 Edward Wang <edward.c.wang@compdigitec.com>
+#  See LICENSE for licence details.
 
 import os
 from shutil import copyfile

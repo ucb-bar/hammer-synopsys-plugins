@@ -263,10 +263,11 @@ with open("${technology}") as f:
 # Suppress PSYN-882 ("Warning: Consecutive metal layers have the same preferred routing direction") while the layer routing is being built.
 print("set suppress_errors  [concat \$suppress_errors  [list PSYN-882]]")
 
-for library in config["libraries"]:
-    if "metal layers" in library:
-        for layer in library["metal layers"]:
-            print("set_preferred_routing_direction -layers {{ {0} }} -direction {1}".format(layer["name"], layer["preferred routing direction"]))
+# TODO This is broken by the stackup API change in ucb-bar/hammer#308
+#for library in config["libraries"]:
+#    if "metal layers" in library:
+#        for layer in library["metal layers"]:
+#            print("set_preferred_routing_direction -layers {{ {0} }} -direction {1}".format(layer["name"], layer["preferred routing direction"]))
 
 print("set suppress_errors  [lminus \$suppress_errors  [list PSYN-882]]")
 EOF

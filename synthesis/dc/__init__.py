@@ -50,10 +50,11 @@ class DC(HammerSynthesisTool, SynopsysTool):
         # Suppress PSYN-882 ("Warning: Consecutive metal layers have the same preferred routing direction") while the layer routing is being built.
         output.append("set suppress_errors  [concat $suppress_errors  [list PSYN-882]]")
 
-        for library in self.technology.config.libraries:
-            if library.metal_layers is not None:
-                for layer in library.metal_layers:
-                    output.append("set_preferred_routing_direction -layers {{ {0} }} -direction {1}".format(layer.name,
+        # TODO This is broken with the API change to stackups ucb-bar/hammer#308
+        #for library in self.technology.config.libraries:
+        #    if library.metal_layers is not None:
+        #        for layer in library.metal_layers:
+        #            output.append("set_preferred_routing_direction -layers {{ {0} }} -direction {1}".format(layer.name,
                                                                                                             layer.preferred_routing_direction))
 
         output.append("set suppress_errors  [lminus $suppress_errors  [list PSYN-882]]")

@@ -5,21 +5,18 @@ synthesis.dc:
   dc_bin_meta: lazysubst # we want later overrides to be able to affect dc_bin
 
   # DC version to use.
-  version: "L-2016.03-SP1"
+  version: "O-2018.06-SP4"
 
-  # Enable congestion map generation.
-  # Causes a GUI session to be temporarily opened, which requires a graphical
-  # environment and associated licences.
-  enable_congestion_map: false
-
-  # Respect max_threads.
-  # Calls disable_multicore_resource_checks to always use the number of cores
-  # specified instead of DC's own load detection.
-  disable_multicore_resource_checks: true
-
-  # compile_ultra arguments.
+  # compile or compile/compile_ultra arguments.
   # TODO: remove this and generate this in the Python plugin?
   compile_args: []
+
+  # retiming arguments
+  retiming_args: [
+    '-justification_effort', 'high', # low | medium | high
+    '-minimum_period_only',
+    '-sync_transform', 'decompose'
+  ]
 
 # Common synopsys settings.
 # TODO: move these to a shared file between ICC and DC.
@@ -35,3 +32,9 @@ synopsys:
   # e.g. "port_a@server:port_b@server"
   MGLS_LICENSE_FILE: ""
   SNPSLMD_LICENSE_FILE: ""
+
+vlsi.inputs:
+  # Do not ungroup these modules/instances
+  no_ungroup: []
+  # List of retimed modules
+  retimed_modules: []

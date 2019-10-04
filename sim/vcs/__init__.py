@@ -19,6 +19,7 @@ from hammer_tech import HammerTechnologyUtils
 
 import os
 import re
+import random
 
 class VCS(HammerSimTool, SynopsysTool):
 
@@ -94,6 +95,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
 
         return True
+
 
     def run_vcs(self) -> bool:
         # run through inputs and append to CL arguments

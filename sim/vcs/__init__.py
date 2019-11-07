@@ -98,7 +98,6 @@ class VCS(HammerSimTool, SynopsysTool):
     def run_vcs(self) -> bool:
         # run through inputs and append to CL arguments
         vcs_bin = self.get_setting("sim.vcs.vcs_bin")
-        vcs_home = self.get_setting("sim.vcs.vcs_home")
         if not os.path.isfile(vcs_bin):
           self.logger.error("VCS binary not found as expected at {0}".format(vcs_bin))
           return False

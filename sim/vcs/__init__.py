@@ -98,6 +98,7 @@ class VCS(HammerSimTool, SynopsysTool):
     def run_vcs(self) -> bool:
         # run through inputs and append to CL arguments
         vcs_bin = self.get_setting("sim.vcs.vcs_bin")
+        vcs_home = self.get_setting("sim.vcs.vcs_home")
         if not os.path.isfile(vcs_bin):
           self.logger.error("VCS binary not found as expected at {0}".format(vcs_bin))
           return False
@@ -117,8 +118,7 @@ class VCS(HammerSimTool, SynopsysTool):
         # Build args
         args = [
           vcs_bin,
-          "-full64",
-          "-I{}".format(os.path.join(os.path.dirname(os.path.abspath(vcs_bin)), "include"))
+          "-full64"
         ]
 
         args.extend(options)  # black box options
@@ -127,6 +127,7 @@ class VCS(HammerSimTool, SynopsysTool):
             args.append('-timescale={}'.format(timescale))
 
         # Add in options we pass to the C++ compiler
+        args.extend(['-CC', '-I$(VCS_HOME)/include'])
         for compiler_opt in compiler_opts:
             args.extend(['-CC', compiler_opt])
 

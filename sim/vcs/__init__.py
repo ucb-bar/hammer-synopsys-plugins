@@ -19,6 +19,7 @@ from hammer_tech import HammerTechnologyUtils
 
 import os
 import re
+import shutil
 
 class VCS(HammerSimTool, SynopsysTool):
 
@@ -121,8 +122,6 @@ class VCS(HammerSimTool, SynopsysTool):
           "-full64"
         ]
 
-        args.extend(options)  # black box options
-
         if timescale is not None:
             args.append('-timescale={}'.format(timescale))
 
@@ -130,6 +129,9 @@ class VCS(HammerSimTool, SynopsysTool):
         args.extend(['-CC', '-I$(VCS_HOME)/include'])
         for compiler_opt in compiler_opts:
             args.extend(['-CC', compiler_opt])
+
+        # black box options
+        args.extend(options)
 
         # Add in all input files
         args.extend(input_files)
@@ -166,6 +168,10 @@ class VCS(HammerSimTool, SynopsysTool):
         if os.path.exists(self.simulator_executable_path):
             os.remove(self.simulator_executable_path)
 
+        # Remove the csrc directory (otherwise the simulator will be stale)
+        if os.path.exists(os.path.join(self.run_dir, "csrc")):
+            shutil.rmtree(os.path.join(self.run_dir, "csrc"))
+
         # Generate a simulator
         self.run_executable(args, cwd=self.run_dir)
 
@@ -180,8 +186,8 @@ class VCS(HammerSimTool, SynopsysTool):
             return True
 
         top_module = self.top_module
-        exec_flags = self.get_setting("sim.inputs.execution_flags", [])
         exec_flags_prepend = self.get_setting("sim.inputs.execution_flags_prepend", [])
+        exec_flags = self.get_setting("sim.inputs.execution_flags", [])
         exec_flags_append = self.get_setting("sim.inputs.execution_flags_append", [])
         force_regs_filename = self.force_regs_file_path
 
@@ -198,18 +204,13 @@ class VCS(HammerSimTool, SynopsysTool):
               self.logger.error("benchmark not found as expected at {0}".format(vcs_bin))
               return False
 
-        args = [
-            self.simulator_executable_path
-        ]
-
+        # setup simulation arguments
+        args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
         args.extend(exec_flags)
-        args.extend(exec_flags_append)
-
         if self.level == SimulationLevel.GateLevel:
-            args.extend(exec_flags_prepend)
             args.extend(["-ucli", "-do", self.run_tcl_path])
-            args.extend(exec_flags_append)
+        args.extend(exec_flags_append)
 
         HammerVLSILogging.enable_colour = False
         HammerVLSILogging.enable_tag = False

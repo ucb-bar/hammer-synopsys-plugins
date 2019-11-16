@@ -107,13 +107,14 @@ class VCS(HammerSimTool, SynopsysTool):
           return False
 
         top_module = self.top_module
-        compiler_opts = self.get_setting("sim.inputs.compiler_opts")
+        compiler_opts = self.get_setting("sim.inputs.compiler_opts", [])
         # TODO(johnwright) sanity check the timescale string
         timescale = self.get_setting("sim.inputs.timescale")
         input_files = list(self.input_files)
         options = self.get_setting("sim.inputs.options", [])
         defines = self.get_setting("sim.inputs.defines", [])
         access_tab_filename = self.access_tab_file_path
+        tb_name = self.get_setting("sim.inputs.tb_name")
 
         # Build args
         args = [
@@ -145,6 +146,7 @@ class VCS(HammerSimTool, SynopsysTool):
         if self.level == SimulationLevel.GateLevel:
             args.extend(['-P'])
             args.extend([access_tab_filename])
+            args.extend(['-debug'])
             if self.get_setting("sim.inputs.timing_annotated"):
                 args.extend(["+neg_tchk"])
                 args.extend(["+sdfverbose"])
@@ -154,6 +156,8 @@ class VCS(HammerSimTool, SynopsysTool):
             else:
                 args.extend(["+notimingcheck"])
                 args.extend(["+delay_mode_zero"])
+
+        args.extend(["-top", tb_name])
 
         args.extend(['-o', self.simulator_executable_path])
 

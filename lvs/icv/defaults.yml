@@ -1,0 +1,30 @@
+# Default settings for ICV lvs, for project/technology configuration and overriding.
+lvs.icv:
+    # Location of the binary
+    icv_lvs_bin: "${synopsys.synopsys_home}/icv/${lvs.icv.version}/bin/LINUX.64/icv"
+    icv_lvs_bin_meta: lazysubst
+
+    icv_nettran_bin: "${synopsys.synopsys_home}/icv/${lvs.icv.version}/bin/LINUX.64/icv_nettran"
+    icv_nettran_bin_meta: lazysubst
+
+    icv_vue_bin: "${synopsys.synopsys_home}/icv/${lvs.icv.version}/bin/LINUX.64/icv_vue"
+    icv_vue_bin_meta: lazysubst
+
+    icwbev_bin: "${synopsys.synopsys_home}/icwbev_plus/${lvs.icv.icwbev_version}/bin/icwbev"
+    icwbev_bin_meta: lazysubst
+
+    ICV_HOME_DIR: "${synopsys.synopsys_home}/icv/${lvs.icv.version}"
+    ICV_HOME_DIR_meta: lazysubst
+
+    version: "O-2018.06-SP2-3"
+    icwbev_version: "O-2018.06-SP2"
+    icwbev_port: 1234  #any open port 1000 to 65536 allowed
+
+    # Symbolic variables passed as -D flags to ICV command.
+    # Alternatively, #define <var> <val> can be appended as additional_lvs_text.
+    # type: List[Dict[str: str]]
+    defines: []
+
+    # Preprocessor include directories passed as -I to the ICV command.
+    # type: List[str]
+    include_dirs: []

@@ -136,18 +136,18 @@ class ICVDRC(HammerDRCTool):
             # Symbolic variables to set via command. Can also use #define <var> <value> in additional_drc_text.
             # TODO: change if other technologies don't use -D switches to select checks.
             if len(self.drc_rules_to_run()) > 0:
-                f.write("-D " + " -D ".join(self.drc_rules_to_run()))
+                f.write(" -D " + " -D ".join(self.drc_rules_to_run()))
             defines = self.get_setting("drc.icv.defines")  # type: List[Dict[str, str]]
             assert isinstance(defines, list)
             if len(defines) > 0:
                 # Most comprehensive way of covering all List[Dict] possibilities
-                f.write("-D " + " -D ".join(map(lambda x: " -D ".join("=".join(_) for _ in x.items()), defines)))
+                f.write(" -D " + " -D ".join(map(lambda x: " -D ".join("=".join(_) for _ in x.items()), defines)))
 
             # Preprocessor directories to include
             include_dirs = self.get_setting("drc.icv.include_dirs")  # type: List[str]
             assert isinstance(include_dirs, list)
             if len(include_dirs) > 0:
-                f.write("-I " + " ".join(include_dirs))
+                f.write(" -I " + " ".join(include_dirs))
         return True
 
     @property

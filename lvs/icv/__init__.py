@@ -180,13 +180,13 @@ class ICVLVS(HammerLVSTool):
             assert isinstance(defines, list)
             if len(defines) > 0:
                 # Most comprehensive way of covering all List[Dict] possibilities
-                f.write("-D " + " -D ".join(map(lambda x: " -D ".join("=".join(_) for _ in x.items()), defines)))
+                f.write(" -D " + " -D ".join(map(lambda x: " -D ".join("=".join(_) for _ in x.items()), defines)))
 
             # Preprocessor directories to include
             include_dirs = self.get_setting("lvs.icv.include_dirs")  # type: List[str]
             assert isinstance(include_dirs, list)
             if len(include_dirs) > 0:
-                f.write("-I " + " ".join(include_dirs))
+                f.write(" -I " + " ".join(include_dirs))
         return True
 
     @property

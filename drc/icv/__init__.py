@@ -93,9 +93,11 @@ class ICVDRC(HammerDRCTool):
             f.write("""
         cd {run_dir}
         source enter
-        # Start Synopsys IC WorkBench Edit/View Plus and give 10 seconds for port to open before starting VUE
+        # Start Synopsys IC WorkBench Edit/View Plus and wait for port to open before starting VUE
         {icwbev} -socket {port} -run {macrofile} {gds} &
-        sleep 10
+        while ! nc -z localhost {port}; do
+            sleep 0.1
+        done
         {icv_vue} -64 -load {results} -lay icwb -layArgs Port {port}
             """.format(
                 run_dir=self.run_dir,

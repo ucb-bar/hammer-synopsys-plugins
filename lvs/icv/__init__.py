@@ -140,7 +140,7 @@ class ICVLVS(HammerLVSTool):
         verilog_files = list(filter(lambda x: get_filetype(x) is HammerFiletype.VERILOG, all_files))
         unmatched = set(all_files).symmetric_difference(set(spice_files + verilog_files))
         if unmatched:
-            raise NotImplementedError("Unsupported netlist type for files: " + unmatched)
+            raise NotImplementedError("Unsupported netlist type for files: " + str(unmatched))
 
         args = [self.get_setting("lvs.icv.icv_nettran_bin"),
                 "-sp", " ".join(spice_files),

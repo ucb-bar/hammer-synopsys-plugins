@@ -88,6 +88,7 @@ class ICVLVS(HammerLVSTool):
         # TODO: check that lvs run was successful
 
         # Create view_lvs script & icwbev macro script file
+        # See the README for how this works
         os.makedirs(self.generated_scripts_dir, exist_ok=True)
 
         with open(self.icwbev_macrofile, "w") as f:

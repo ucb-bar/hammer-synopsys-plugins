@@ -79,6 +79,7 @@ class ICVDRC(HammerDRCTool):
         # TODO: check that drc run was successful
 
         # Create view_drc script & icwbev macro script file
+        # See the README for how this works
         os.makedirs(self.generated_scripts_dir, exist_ok=True)
 
         with open(self.icwbev_macrofile, "w") as f:

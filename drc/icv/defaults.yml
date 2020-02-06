@@ -13,13 +13,18 @@ drc.icv:
     ICV_HOME_DIR: "${synopsys.synopsys_home}/icv/${drc.icv.version}"
     ICV_HOME_DIR_meta: lazysubst
 
+    # type: str
     version: "O-2018.06-SP2-3"
+    # type: str
     icwbev_version: "O-2018.06-SP2"
-    icwbev_port: 1234  #any open port 1000 to 65536 allowed
+    # Port for VUE (violation browser) to communicate with ICWBEV (layout browser)
+    # Any open port 1000 to 65536 allowed
+    # type: int
+    icwbev_port: 1234
 
     # Symbolic variables passed as -D flags to ICV command.
     # Alternatively, #define <var> <val> can be appended as additional_drc_text.
-    # type: List[Dict[str: str]]
+    # type: List[Dict[str, str]]
     defines: []
 
     # Preprocessor include directories passed as -I to the ICV command.

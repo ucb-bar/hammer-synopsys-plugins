@@ -63,6 +63,7 @@ class ICVLVS(HammerLVSTool):
     def run_icv(self) -> bool:
         self.create_enter_script()
 
+        # translate all spice & verilog netlists with vue_nettran
         self.generate_top_icv_file()
         # generate the hcells file if needed
         self.generate_hcells_file()

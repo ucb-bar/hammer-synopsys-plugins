@@ -199,6 +199,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 find_regs_run_tcl.append("exit")
                 f.write("\n".join(find_regs_run_tcl))
 
+        vcs_bin = self.get_setting("sim.vcs.vcs_bin")
         for benchmark in self.benchmarks:
             if not os.path.isfile(benchmark):
               self.logger.error("benchmark not found as expected at {0}".format(vcs_bin))

@@ -11,7 +11,7 @@ from hammer_logging import HammerVLSILogging
 
 from typing import Dict, List, Optional, Callable, Tuple
 
-from hammer_vlsi import SimulationLevel
+from hammer_vlsi import SimulationLevel, TimeValue
 
 import hammer_utils
 import hammer_tech
@@ -156,6 +156,11 @@ class VCS(HammerSimTool, SynopsysTool):
             else:
                 args.extend(["+notimingcheck"])
                 args.extend(["+delay_mode_zero"])
+        else:
+            # Also disable timing at RTL level for any hard macros
+            args.extend(["+notimingcheck"])
+            args.extend(["+delay_mode_zero"])
+
 
         args.extend(["-top", tb_name])
 
@@ -190,11 +195,25 @@ class VCS(HammerSimTool, SynopsysTool):
         exec_flags = self.get_setting("sim.inputs.execution_flags", [])
         exec_flags_append = self.get_setting("sim.inputs.execution_flags_append", [])
         force_regs_filename = self.force_regs_file_path
+        tb_prefix = self.get_setting("sim.inputs.tb_dut")
+        saif_enable = self.get_setting("sim.inputs.saif.enable")
+        saif_start_times = self.get_setting("sim.inputs.saif.start_times")
+        saif_end_times = self.get_setting("sim.inputs.saif.end_times")
 
         if self.level == SimulationLevel.GateLevel:
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
+                if saif_enable:
+                    stime = TimeValue(saif_start_times[0])
+                    etime = TimeValue(saif_end_times[0])
+                    find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
+                    # start saif
+                    find_regs_run_tcl.append("power -gate_level on")
+                    find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
+                    find_regs_run_tcl.append("config endofsim noexit")
+                    find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
+                    find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
                 find_regs_run_tcl.append("run")
                 find_regs_run_tcl.append("exit")
                 f.write("\n".join(find_regs_run_tcl))
@@ -209,6 +228,13 @@ class VCS(HammerSimTool, SynopsysTool):
         args.extend(exec_flags_prepend)
         args.extend(exec_flags)
         if self.level == SimulationLevel.GateLevel:
+            if saif_enable:
+                args.extend([
+                    # Reduce the number ucli instructions by auto starting and auto stopping
+                    '-saif_opt+toggle_start_at_set_region+toggle_stop_at_toggle_report',
+                    # Only needed if we are using start time pruning so we can return to ucli after endofsim
+                    '-ucli2Proc',
+                ])
             args.extend(["-ucli", "-do", self.run_tcl_path])
         args.extend(exec_flags_append)
 

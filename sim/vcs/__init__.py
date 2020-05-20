@@ -200,13 +200,15 @@ class VCS(HammerSimTool, SynopsysTool):
         if saif_enable:
             saif_mode = self.get_setting("sim.inputs.saif.mode")
             if saif_mode == "time":
-                saif_start_times = self.get_setting("sim.inputs.saif.start_times")
-                saif_end_times = self.get_setting("sim.inputs.saif.end_times")
+                saif_start_time = self.get_setting("sim.inputs.saif.start_time")
+                saif_end_time = self.get_setting("sim.inputs.saif.end_time")
             elif saif_mode == "trigger":
-                saif_start_triggers = self.get_setting("sim.inputs.saif.start_triggers")
-                saif_end_triggers = self.get_setting("sim.inputs.saif.end_triggers")
+                saif_start_trigger = self.get_setting("sim.inputs.saif.start_trigger")
+                saif_end_trigger = self.get_setting("sim.inputs.saif.end_trigger")
+            elif saif_mode == "none":
+                pass
             else:
-                self.logger.error("Bad saif_mode:${saif_mode}. Valid modes are time or trigger.")
+                self.logger.error("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, or none.")
 
 
         if self.level == SimulationLevel.GateLevel:
@@ -215,23 +217,26 @@ class VCS(HammerSimTool, SynopsysTool):
                 find_regs_run_tcl.append("source " + force_regs_filename)
                 if saif_enable:
                     if saif_mode == "time":
-                        stime = TimeValue(saif_start_times[0])
+                        stime = TimeValue(saif_start_time[0])
                         find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
                     elif saif_mode == "trigger":
-                        strig = saif_start_triggers[0]
-                        find_regs_run_tcl.append(strig)
+                        find_regs_run_tcl.append(saif_start_trigger)
                         find_regs_run_tcl.append("run")
+                    elif saif_mode === "none":
+                        pass
                     # start saif
                     find_regs_run_tcl.append("power -gate_level on")
                     find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
                     find_regs_run_tcl.append("config endofsim noexit")
                     if saif_mode == "time":
-                        etime = TimeValue(saif_end_times[0])
+                        etime = TimeValue(saif_end_time)
                         find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
                     elif saif_mode == "trigger":
-                        etrig = saif_end_triggers[0]
-                        find_regs_run_tcl.append(etrig)
+                        find_regs_run_tcl.append(saif_end_trigger)
                         find_regs_run_tcl.append("run")
+                    elif saif_mode === "none":
+                        find_regs_run_tcl.append("run")
+                    # stop saif
                     find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
                 find_regs_run_tcl.append("run")
                 find_regs_run_tcl.append("exit")

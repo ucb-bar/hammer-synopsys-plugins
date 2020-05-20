@@ -222,7 +222,7 @@ class VCS(HammerSimTool, SynopsysTool):
                     elif saif_mode == "trigger":
                         find_regs_run_tcl.append(saif_start_trigger)
                         find_regs_run_tcl.append("run")
-                    elif saif_mode === "none":
+                    elif saif_mode == "none":
                         pass
                     # start saif
                     find_regs_run_tcl.append("power -gate_level on")
@@ -234,7 +234,7 @@ class VCS(HammerSimTool, SynopsysTool):
                     elif saif_mode == "trigger":
                         find_regs_run_tcl.append(saif_end_trigger)
                         find_regs_run_tcl.append("run")
-                    elif saif_mode === "none":
+                    elif saif_mode == "none":
                         find_regs_run_tcl.append("run")
                     # stop saif
                     find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))

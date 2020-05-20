@@ -203,8 +203,10 @@ class VCS(HammerSimTool, SynopsysTool):
                 saif_start_time = self.get_setting("sim.inputs.saif.start_time")
                 saif_end_time = self.get_setting("sim.inputs.saif.end_time")
             elif saif_mode == "trigger":
-                saif_start_trigger = self.get_setting("sim.inputs.saif.start_trigger")
-                saif_end_trigger = self.get_setting("sim.inputs.saif.end_trigger")
+                self.logger.error("Trigger SAIF mode currently unsupported.")
+            elif saif_mode == "trigger_raw":
+                saif_start_trigger_raw = self.get_setting("sim.inputs.saif.start_trigger_raw")
+                saif_end_trigger_raw = self.get_setting("sim.inputs.saif.end_trigger_raw")
             elif saif_mode == "none":
                 pass
             else:
@@ -219,8 +221,8 @@ class VCS(HammerSimTool, SynopsysTool):
                     if saif_mode == "time":
                         stime = TimeValue(saif_start_time[0])
                         find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
-                    elif saif_mode == "trigger":
-                        find_regs_run_tcl.append(saif_start_trigger)
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_start_trigger_raw)
                         find_regs_run_tcl.append("run")
                     elif saif_mode == "none":
                         pass
@@ -231,8 +233,8 @@ class VCS(HammerSimTool, SynopsysTool):
                     if saif_mode == "time":
                         etime = TimeValue(saif_end_time)
                         find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
-                    elif saif_mode == "trigger":
-                        find_regs_run_tcl.append(saif_end_trigger)
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_end_trigger_raw)
                         find_regs_run_tcl.append("run")
                     elif saif_mode == "none":
                         find_regs_run_tcl.append("run")

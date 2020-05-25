@@ -246,6 +246,7 @@ class VCS(HammerSimTool, SynopsysTool):
 
         for benchmark in self.benchmarks:
             if not os.path.isfile(benchmark):
+              vcs_bin = self.get_setting("sim.vcs.vcs_bin")
               self.logger.error("benchmark not found as expected at {0}".format(vcs_bin))
               return False
 

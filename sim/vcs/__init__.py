@@ -196,35 +196,35 @@ class VCS(HammerSimTool, SynopsysTool):
         exec_flags_append = self.get_setting("sim.inputs.execution_flags_append", [])
         force_regs_filename = self.force_regs_file_path
         tb_prefix = self.get_setting("sim.inputs.tb_dut")
-        saif_enable = self.get_setting("sim.inputs.saif.enable")
-        if saif_enable:
-            saif_mode = self.get_setting("sim.inputs.saif.mode")
-            if saif_mode == "time":
-                saif_start_time = self.get_setting("sim.inputs.saif.start_time")
-                saif_end_time = self.get_setting("sim.inputs.saif.end_time")
-            elif saif_mode == "trigger":
-                self.logger.error("Trigger SAIF mode currently unsupported.")
-            elif saif_mode == "trigger_raw":
-                saif_start_trigger_raw = self.get_setting("sim.inputs.saif.start_trigger_raw")
-                saif_end_trigger_raw = self.get_setting("sim.inputs.saif.end_trigger_raw")
-            elif saif_mode == "none":
-                pass
-            else:
-                self.logger.error("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, or none.")
+        saif_mode = self.get_setting("sim.inputs.saif.mode")
+        if saif_mode == "time":
+            saif_start_time = self.get_setting("sim.inputs.saif.start_time")
+            saif_end_time = self.get_setting("sim.inputs.saif.end_time")
+        elif saif_mode == "trigger":
+            self.logger.error("Trigger SAIF mode currently unsupported.")
+        elif saif_mode == "trigger_raw":
+            saif_start_trigger_raw = self.get_setting("sim.inputs.saif.start_trigger_raw")
+            saif_end_trigger_raw = self.get_setting("sim.inputs.saif.end_trigger_raw")
+        elif saif_mode == "full":
+            pass
+        elif saif_mode == "none":
+            pass
+        else:
+            self.logger.warning("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, full, or none. Defaulting to none.")
 
 
         if self.level == SimulationLevel.GateLevel:
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
-                if saif_enable:
+                if saif_mode != "none":
                     if saif_mode == "time":
                         stime = TimeValue(saif_start_time[0])
                         find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
                     elif saif_mode == "trigger_raw":
                         find_regs_run_tcl.append(saif_start_trigger_raw)
                         find_regs_run_tcl.append("run")
-                    elif saif_mode == "none":
+                    elif saif_mode == "full":
                         pass
                     # start saif
                     find_regs_run_tcl.append("power -gate_level on")
@@ -236,7 +236,7 @@ class VCS(HammerSimTool, SynopsysTool):
                     elif saif_mode == "trigger_raw":
                         find_regs_run_tcl.append(saif_end_trigger_raw)
                         find_regs_run_tcl.append("run")
-                    elif saif_mode == "none":
+                    elif saif_mode == "full":
                         find_regs_run_tcl.append("run")
                     # stop saif
                     find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
@@ -255,7 +255,7 @@ class VCS(HammerSimTool, SynopsysTool):
         args.extend(exec_flags_prepend)
         args.extend(exec_flags)
         if self.level == SimulationLevel.GateLevel:
-            if saif_enable:
+            if saif_mode != "none":
                 args.extend([
                     # Reduce the number ucli instructions by auto starting and auto stopping
                     '-saif_opt+toggle_start_at_set_region+toggle_stop_at_toggle_report',

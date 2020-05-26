@@ -56,6 +56,7 @@ class DC(HammerSynthesisTool, SynopsysTool):
         #        for layer in library.metal_layers:
         #            output.append("set_preferred_routing_direction -layers {{ {0} }} -direction {1}".format(layer.name, layer.preferred_routing_direction))
 
+
         output.append("set suppress_errors  [lminus $suppress_errors  [list PSYN-882]]")
         output.append("")  # Add newline at the end
         return "\n".join(output)

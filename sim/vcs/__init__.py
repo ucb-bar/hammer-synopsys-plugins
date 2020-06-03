@@ -88,7 +88,7 @@ class VCS(HammerSimTool, SynopsysTool):
         all_regs = self.all_regs
 
         with open(self.force_regs_file_path, "w") as f:
-            for reg in all_regs:
+            for reg in sorted(all_regs, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06-SP1
                 path = reg["path"]
                 path = '.'.join(path.split('/'))
                 pin = reg["pin"]
@@ -211,6 +211,7 @@ class VCS(HammerSimTool, SynopsysTool):
             pass
         else:
             self.logger.warning("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, full, or none. Defaulting to none.")
+            saif_mode = "none"
 
 
         if self.level == SimulationLevel.GateLevel:

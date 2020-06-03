@@ -20,6 +20,7 @@ from hammer_tech import HammerTechnologyUtils
 import os
 import re
 import shutil
+import json
 
 class VCS(HammerSimTool, SynopsysTool):
 
@@ -80,19 +81,29 @@ class VCS(HammerSimTool, SynopsysTool):
         force_val = self.get_setting("sim.inputs.gl_register_force_value")
 
         seq_cells = self.seq_cells
+        if not os.path.isfile(seq_cells):
+            self.logger.error("List of seq cells json not found as expected at {0}".format(seq_cells))
 
         with open(self.access_tab_file_path, "w") as f:
-            for cell in seq_cells:
-                f.write("acc=wn:{cell_name}\n".format(cell_name=cell))
+            with open(seq_cells) as seq_file:
+                seq_json = json.load(seq_file)
+                assert isinstance(seq_json, List[str]), "list of all sequential cells should be a json list of strings not {}".format(type(seq_json))
+                for cell in seq_json:
+                    f.write("acc=wn:{cell_name}\n".format(cell_name=cell))
 
         all_regs = self.all_regs
+        if not os.path.isfile(all_regs):
+            self.logger.error("List of all regs json not found as expected at {0}".format(all_regs))
 
         with open(self.force_regs_file_path, "w") as f:
-            for reg in sorted(all_regs, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06-SP1
-                path = reg["path"]
-                path = '.'.join(path.split('/'))
-                pin = reg["pin"]
-                f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
+            with open(all_regs) as reg_file:
+                reg_json = json.load(reg_file)
+                assert isinstance(reg_json, List[Dict[str,str]]), "list of all sequential cells should be a json list of dictionaries from string to string not {}".format(type(reg_json))
+                for reg in sorted(reg_json, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06
+                    path = reg["path"]
+                    path = '.'.join(path.split('/'))
+                    pin = reg["pin"]
+                    f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
 
         return True
 

@@ -87,7 +87,7 @@ class VCS(HammerSimTool, SynopsysTool):
         with open(self.access_tab_file_path, "w") as f:
             with open(seq_cells) as seq_file:
                 seq_json = json.load(seq_file)
-                assert isinstance(seq_json, List[str]), "list of all sequential cells should be a json list of strings not {}".format(type(seq_json))
+                assert isinstance(seq_json, List), "list of all sequential cells should be a json list of strings not {}".format(type(seq_json))
                 for cell in seq_json:
                     f.write("acc=wn:{cell_name}\n".format(cell_name=cell))
 
@@ -98,7 +98,7 @@ class VCS(HammerSimTool, SynopsysTool):
         with open(self.force_regs_file_path, "w") as f:
             with open(all_regs) as reg_file:
                 reg_json = json.load(reg_file)
-                assert isinstance(reg_json, List[Dict[str,str]]), "list of all sequential cells should be a json list of dictionaries from string to string not {}".format(type(reg_json))
+                assert isinstance(reg_json, List), "list of all sequential cells should be a json list of dictionaries from string to string not {}".format(type(reg_json))
                 for reg in sorted(reg_json, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06
                     path = reg["path"]
                     path = '.'.join(path.split('/'))

@@ -5,7 +5,7 @@
 #
 #  See LICENSE for license details.
 
-from hammer_vlsi import HammerSimTool, HammerToolStep
+from hammer_vlsi import HammerSimTool, HammerToolStep, HammerLSFSubmitCommand, HammerLSFSettings
 from hammer_vlsi import SynopsysTool
 from hammer_logging import HammerVLSILogging
 
@@ -21,6 +21,7 @@ import os
 import re
 import shutil
 import json
+from multiprocessing import Process
 
 class VCS(HammerSimTool, SynopsysTool):
 
@@ -151,6 +152,11 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # black box options
         args.extend(options)
+
+        # Multicore options
+        if isinstance(self.submit_command, HammerLSFSubmitCommand):
+            if self.submit_command.settings.num_cpus is not None:
+                args.extend(['-j'+str(self.submit_command.settings.num_cpus)])
 
         # Add in all input files
         args.extend(input_files)
@@ -288,12 +294,36 @@ class VCS(HammerSimTool, SynopsysTool):
         HammerVLSILogging.enable_colour = False
         HammerVLSILogging.enable_tag = False
 
-        # TODO(johnwright) We should optionally parallelize this in the future.
+        # Our current invocation of VCS is only using a single core
+        if isinstance(self.submit_command, HammerLSFSubmitCommand):
+            #self.submit_command.settings.num_cpus = 1
+            old_settings = self.submit_command.settings._asdict()
+            del old_settings['num_cpus']
+            self.submit_command.settings = HammerLSFSettings(num_cpus=1, **old_settings)
+
+        # Run the simulations in as many parallel runs as the user wants
+        if self.get_setting("sim.inputs.parallel_runs") == 0:
+            runs = 1
+        else:
+            runs = self.get_setting("sim.inputs.parallel_runs")
+        bp = [] #  type: List[Process]
+        running = 0
+        ran = 0
         for benchmark in self.benchmarks:
             bmark_run_dir = self.benchmark_run_dir(benchmark)
             # Make the rundir if it does not exist
             hammer_utils.mkdir_p(bmark_run_dir)
-            self.run_executable(args + [benchmark], cwd=bmark_run_dir)
+            if runs > 0 and running >= runs: # We are currently running the maximum number so we join first
+                bp[ran].join()
+                ran = ran + 1
+                running = running - 1
+            bp.append(Process(target=self.run_executable, args=(args + [benchmark],), kwargs={'cwd':bmark_run_dir}))
+            bp[-1].start()
+            running = running + 1
+        # Make sure we join all remaining runs
+        for p in bp:
+            p.join()
+
 
         if self.benchmarks == []:
             self.run_executable(args, cwd=self.run_dir)

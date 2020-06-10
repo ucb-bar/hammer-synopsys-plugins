@@ -296,7 +296,6 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # Our current invocation of VCS is only using a single core
         if isinstance(self.submit_command, HammerLSFSubmitCommand):
-            #self.submit_command.settings.num_cpus = 1
             old_settings = self.submit_command.settings._asdict()
             del old_settings['num_cpus']
             self.submit_command.settings = HammerLSFSettings(num_cpus=1, **old_settings)

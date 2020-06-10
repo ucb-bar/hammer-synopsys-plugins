@@ -30,6 +30,14 @@ class VCS(HammerSimTool, SynopsysTool):
     def tool_config_prefix(self) -> str:
         return "sim.vcs"
 
+    def fill_outputs(self) -> bool:
+        # TODO: support automatic waveform generation in a similar fashion to SAIFs
+        self.output_waveforms = []
+        self.output_saifs = []
+        for benchmark in self.benchmarks:
+            self.output_saifs.append(os.path.join(self.benchmark_run_dir(benchmark), "ucli.saif"))
+        return True
+
     @property
     def steps(self) -> List[HammerToolStep]:
         return self.make_steps_from_methods([
@@ -259,8 +267,7 @@ class VCS(HammerSimTool, SynopsysTool):
         vcs_bin = self.get_setting("sim.vcs.vcs_bin")
         for benchmark in self.benchmarks:
             if not os.path.isfile(benchmark):
-              vcs_bin = self.get_setting("sim.vcs.vcs_bin")
-              self.logger.error("benchmark not found as expected at {0}".format(vcs_bin))
+              self.logger.error("benchmark not found as expected at {0}".format(benchmark))
               return False
 
         # setup simulation arguments

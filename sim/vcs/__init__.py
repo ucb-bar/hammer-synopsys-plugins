@@ -127,7 +127,8 @@ class VCS(HammerSimTool, SynopsysTool):
           return False
 
         top_module = self.top_module
-        compiler_opts = self.get_setting("sim.inputs.compiler_opts", [])
+        compiler_cc_opts = self.get_setting("sim.inputs.compiler_cc_opts", [])
+        compiler_ld_opts = self.get_setting("sim.inputs.compiler_ld_opts", [])
         # TODO(johnwright) sanity check the timescale string
         timescale = self.get_setting("sim.inputs.timescale")
         input_files = list(self.input_files)
@@ -147,8 +148,11 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # Add in options we pass to the C++ compiler
         args.extend(['-CC', '-I$(VCS_HOME)/include'])
-        for compiler_opt in compiler_opts:
-            args.extend(['-CC', compiler_opt])
+        for compiler_cc_opt in compiler_cc_opts:
+            args.extend(['-CFLAGS', compiler_cc_opt])
+
+        for compiler_ld_opt in compiler_ld_opts:
+            args.extend(['-LDFLAGS', compiler_ld_opt])
 
         # black box options
         args.extend(options)

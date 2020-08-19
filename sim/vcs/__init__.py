@@ -151,8 +151,12 @@ class VCS(HammerSimTool, SynopsysTool):
         for compiler_cc_opt in compiler_cc_opts:
             args.extend(['-CFLAGS', compiler_cc_opt])
 
+        # vcs requires libraries (-l) to be outside of the LDFLAGS
         for compiler_ld_opt in compiler_ld_opts:
-            args.extend(['-LDFLAGS', compiler_ld_opt])
+            if compiler_ld_opt.startswith('-l'):
+                args.extend([compiler_ld_opt])
+            else:
+                args.extend(['-LDFLAGS', compiler_ld_opt])
 
         # black box options
         args.extend(options)

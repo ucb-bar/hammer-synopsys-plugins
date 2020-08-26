@@ -89,23 +89,23 @@ class VCS(HammerSimTool, SynopsysTool):
         tb_prefix = self.get_setting("sim.inputs.tb_dut")
         force_val = self.get_setting("sim.inputs.gl_register_force_value")
 
-        seq_cells = self.seq_cells
-        if not os.path.isfile(seq_cells):
-            self.logger.error("List of seq cells json not found as expected at {0}".format(seq_cells))
+        abspath_seq_cells = os.path.join(os.getcwd(), self.seq_cells)
+        if not os.path.isfile(abspath_seq_cells):
+            self.logger.error("List of seq cells json not found as expected at {0}".format(self.seq_cells))
 
         with open(self.access_tab_file_path, "w") as f:
-            with open(seq_cells) as seq_file:
+            with open(abspath_seq_cells) as seq_file:
                 seq_json = json.load(seq_file)
                 assert isinstance(seq_json, List), "list of all sequential cells should be a json list of strings not {}".format(type(seq_json))
                 for cell in seq_json:
                     f.write("acc=wn:{cell_name}\n".format(cell_name=cell))
 
-        all_regs = self.all_regs
-        if not os.path.isfile(all_regs):
-            self.logger.error("List of all regs json not found as expected at {0}".format(all_regs))
+        abspath_all_regs = os.path.join(os.getcwd(), self.all_regs)
+        if not os.path.isfile(abspath_all_regs):
+            self.logger.error("List of all regs json not found as expected at {0}".format(self.all_regs))
 
         with open(self.force_regs_file_path, "w") as f:
-            with open(all_regs) as reg_file:
+            with open(abspath_all_regs) as reg_file:
                 reg_json = json.load(reg_file)
                 assert isinstance(reg_json, List), "list of all sequential cells should be a json list of dictionaries from string to string not {}".format(type(reg_json))
                 for reg in sorted(reg_json, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06
@@ -126,12 +126,15 @@ class VCS(HammerSimTool, SynopsysTool):
         if not self.check_input_files([".v", ".sv", ".so", ".cc", ".c"]):
           return False
 
+        # We are switching working directories and we still need to find paths
+        abspath_input_files = list(map(lambda name: os.path.join(os.getcwd(), name), self.input_files))
+        abspath_sdf_file = os.path.join(os.getcwd(), self.sdf_file)
+
         top_module = self.top_module
         compiler_cc_opts = self.get_setting("sim.inputs.compiler_cc_opts", [])
         compiler_ld_opts = self.get_setting("sim.inputs.compiler_ld_opts", [])
         # TODO(johnwright) sanity check the timescale string
         timescale = self.get_setting("sim.inputs.timescale")
-        input_files = list(self.input_files)
         options = self.get_setting("sim.inputs.options", [])
         defines = self.get_setting("sim.inputs.defines", [])
         access_tab_filename = self.access_tab_file_path
@@ -167,7 +170,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 args.extend(['-j'+str(self.submit_command.settings.num_cpus)])
 
         # Add in all input files
-        args.extend(input_files)
+        args.extend(abspath_input_files)
 
         # Note: we always want to get the verilog models because most real designs will instantate a few
         # tech-specific cells in the source RTL (IO cells, clock gaters, etc.)
@@ -185,7 +188,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 args.extend(["+sdfverbose"])
                 args.extend(["-negdelay"])
                 args.extend(["-sdf"])
-                args.extend(["max:{top}:{sdf}".format(run_dir=self.run_dir, top=top_module, sdf=self.sdf_file)])
+                args.extend(["max:{top}:{sdf}".format(run_dir=self.run_dir, top=top_module, sdf=abspath_sdf_file)])
             else:
                 args.extend(["+notimingcheck"])
                 args.extend(["+delay_mode_zero"])

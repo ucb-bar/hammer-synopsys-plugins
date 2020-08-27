@@ -128,7 +128,6 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # We are switching working directories and we still need to find paths
         abspath_input_files = list(map(lambda name: os.path.join(os.getcwd(), name), self.input_files))
-        abspath_sdf_file = os.path.join(os.getcwd(), self.sdf_file)
 
         top_module = self.top_module
         compiler_cc_opts = self.get_setting("sim.inputs.compiler_cc_opts", [])
@@ -188,7 +187,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 args.extend(["+sdfverbose"])
                 args.extend(["-negdelay"])
                 args.extend(["-sdf"])
-                args.extend(["max:{top}:{sdf}".format(run_dir=self.run_dir, top=top_module, sdf=abspath_sdf_file)])
+                args.extend(["max:{top}:{sdf}".format(run_dir=self.run_dir, top=top_module, sdf=os.path.join(os.getcwd(), self.sdf_file))])
             else:
                 args.extend(["+notimingcheck"])
                 args.extend(["+delay_mode_zero"])

@@ -35,8 +35,11 @@ class VCS(HammerSimTool, SynopsysTool):
         # TODO: support automatic waveform generation in a similar fashion to SAIFs
         self.output_waveforms = []
         self.output_saifs = []
-        for benchmark in self.benchmarks:
-            self.output_saifs.append(os.path.join(self.benchmark_run_dir(benchmark), "ucli.saif"))
+        if self.get_setting("sim.inputs.saif.mode") != "none":
+            if not self.benchmarks:
+                self.output_saifs.append(os.path.join(self.run_dir, "ucli.saif"))
+            for benchmark in self.benchmarks:
+                self.output_saifs.append(os.path.join(self.benchmark_run_dir(benchmark), "ucli.saif"))
         return True
 
     @property

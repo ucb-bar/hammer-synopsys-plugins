@@ -35,6 +35,9 @@ class VCS(HammerSimTool, SynopsysTool):
         # TODO: support automatic waveform generation in a similar fashion to SAIFs
         self.output_waveforms = []
         self.output_saifs = []
+        self.output_top_module = self.top_module
+        self.output_tb_name = self.get_setting("sim.inputs.tb_name")
+        self.output_tb_dut = self.get_setting("sim.inputs.tb_dut")
         if self.get_setting("sim.inputs.saif.mode") != "none":
             if not self.benchmarks:
                 self.output_saifs.append(os.path.join(self.run_dir, "ucli.saif"))
@@ -256,6 +259,35 @@ class VCS(HammerSimTool, SynopsysTool):
             self.logger.warning("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, full, or none. Defaulting to none.")
             saif_mode = "none"
 
+        # new
+        if self.level == SimulationLevel.RTL and saif_mode != "none":
+            with open(self.run_tcl_path, "w") as f:
+                find_regs_run_tcl = []
+                if saif_mode != "none":
+                    if saif_mode == "time":
+                        stime = TimeValue(saif_start_time[0])
+                        find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_start_trigger_raw)
+                        find_regs_run_tcl.append("run")
+                    elif saif_mode == "full":
+                        pass
+                    # start saif
+                    find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
+                    find_regs_run_tcl.append("config endofsim noexit")
+                    if saif_mode == "time":
+                        etime = TimeValue(saif_end_time)
+                        find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_end_trigger_raw)
+                        find_regs_run_tcl.append("run")
+                    elif saif_mode == "full":
+                        find_regs_run_tcl.append("run")
+                    # stop saif
+                    find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
+                find_regs_run_tcl.append("run")
+                find_regs_run_tcl.append("exit")
+                f.write("\n".join(find_regs_run_tcl))
 
         if self.level == SimulationLevel.GateLevel:
             with open(self.run_tcl_path, "w") as f:
@@ -310,6 +342,15 @@ class VCS(HammerSimTool, SynopsysTool):
                     # Only needed if we are using start time pruning so we can return to ucli after endofsim
                     '-ucli2Proc',
                 ])
+            args.extend(["-ucli", "-do", self.run_tcl_path])
+        # new
+        elif self.level == SimulationLevel.RTL and saif_mode != "none":
+            args.extend([
+                # Reduce the number ucli instructions by auto starting and auto stopping
+                '-saif_opt+toggle_start_at_set_region+toggle_stop_at_toggle_report',
+                # Only needed if we are using start time pruning so we can return to ucli after endofsim
+                '-ucli2Proc',
+            ])
             args.extend(["-ucli", "-do", self.run_tcl_path])
         args.extend(exec_flags_append)
 

@@ -11,7 +11,7 @@ from hammer_logging import HammerVLSILogging
 
 from typing import Dict, List, Optional, Callable, Tuple
 
-from hammer_vlsi import SimulationLevel, TimeValue
+from hammer_vlsi import FlowLevel, TimeValue
 
 import hammer_utils
 import hammer_tech
@@ -38,6 +38,7 @@ class VCS(HammerSimTool, SynopsysTool):
         self.output_top_module = self.top_module
         self.output_tb_name = self.get_setting("sim.inputs.tb_name")
         self.output_tb_dut = self.get_setting("sim.inputs.tb_dut")
+        self.output_level = self.get_setting("sim.inputs.level")
         if self.get_setting("sim.inputs.saif.mode") != "none":
             if not self.benchmarks:
                 self.output_saifs.append(os.path.join(self.run_dir, "ucli.saif"))
@@ -89,7 +90,7 @@ class VCS(HammerSimTool, SynopsysTool):
         return verilog_sim_files
 
     def write_gl_files(self) -> bool:
-        if self.level == SimulationLevel.RTL:
+        if self.level == FlowLevel.RTL:
             return True
 
         tb_prefix = self.get_setting("sim.inputs.tb_dut")
@@ -184,7 +185,7 @@ class VCS(HammerSimTool, SynopsysTool):
         for define in defines:
             args.extend(['+define+' + define])
 
-        if self.level == SimulationLevel.GateLevel:
+        if self.level == FlowLevel.GateLevel:
             args.extend(['-P'])
             args.extend([access_tab_filename])
             args.extend(['-debug'])
@@ -255,7 +256,7 @@ class VCS(HammerSimTool, SynopsysTool):
             saif_mode = "none"
 
         # new
-        if self.level == SimulationLevel.RTL and saif_mode != "none":
+        if self.level == FlowLevel.RTL and saif_mode != "none":
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 if saif_mode != "none":
@@ -284,7 +285,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 find_regs_run_tcl.append("exit")
                 f.write("\n".join(find_regs_run_tcl))
 
-        if self.level == SimulationLevel.GateLevel:
+        if self.level == FlowLevel.GateLevel:
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
@@ -325,7 +326,7 @@ class VCS(HammerSimTool, SynopsysTool):
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
         args.extend(exec_flags)
-        if self.level == SimulationLevel.GateLevel:
+        if self.level == FlowLevel.GateLevel:
             if saif_mode != "none":
                 args.extend([
                     # Reduce the number ucli instructions by auto starting and auto stopping
@@ -335,7 +336,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 ])
             args.extend(["-ucli", "-do", self.run_tcl_path])
         # new
-        elif self.level == SimulationLevel.RTL and saif_mode != "none":
+        elif self.level == FlowLevel.RTL and saif_mode != "none":
             args.extend([
                 # Reduce the number ucli instructions by auto starting and auto stopping
                 '-saif_opt+toggle_start_at_set_region+toggle_stop_at_toggle_report',

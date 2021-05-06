@@ -107,15 +107,24 @@ class VCS(HammerSimTool, SynopsysTool):
         if not os.path.isfile(abspath_all_regs):
             self.logger.error("List of all regs json not found as expected at {0}".format(self.all_regs))
 
+		
+        print("Loading json: {}".format(abspath_all_regs))
         with open(self.force_regs_file_path, "w") as f:
             with open(abspath_all_regs) as reg_file:
                 reg_json = json.load(reg_file)
                 assert isinstance(reg_json, List), "list of all sequential cells should be a json list of dictionaries from string to string not {}".format(type(reg_json))
-                for reg in sorted(reg_json, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06
-                    path = reg["path"]
-                    path = '.'.join(path.split('/'))
-                    pin = reg["pin"]
-                    f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
+                #for reg in sorted(reg_json, key=lambda r: len(r["path"])): # TODO: This is a workaround for a bug in P-2019.06
+                #    path = reg["path"]
+                #    path = '.'.join(path.split('/'))
+                #    pin = reg["pin"]
+                #    f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
+                for reg in sorted(reg_json):
+                    splits = reg.split('/')
+                    if(splits[-2][-1] == ']'):
+                        splits[-2] = "\\" + splits[-2]
+                    splits[-2] = splits[-2]+" "
+                    reg = '.'.join(splits)
+                    f.write("force -deposit {" + tb_prefix + "." + reg +  "} " + str(force_val) + "\n")
 
         return True
 
@@ -126,7 +135,7 @@ class VCS(HammerSimTool, SynopsysTool):
           self.logger.error("VCS binary not found as expected at {0}".format(vcs_bin))
           return False
 
-        if not self.check_input_files([".v", ".sv", ".so", ".cc", ".c"]):
+        if not self.check_input_files([".v.gz", ".v", ".sv", ".so", ".cc", ".c"]):
           return False
 
         # We are switching working directories and we still need to find paths
@@ -157,10 +166,12 @@ class VCS(HammerSimTool, SynopsysTool):
             args.extend(['-CFLAGS', compiler_cc_opt])
 
         # vcs requires libraries (-l) to be outside of the LDFLAGS
+        print("compiler_ld_opts: {}:".format(compiler_ld_opts))
         for compiler_ld_opt in compiler_ld_opts:
             if compiler_ld_opt.startswith('-l'):
                 args.extend([compiler_ld_opt])
             else:
+                print("GOT TO {}".format(compiler_ld_opt))
                 args.extend(['-LDFLAGS', compiler_ld_opt])
 
         # black box options
@@ -216,6 +227,7 @@ class VCS(HammerSimTool, SynopsysTool):
             shutil.rmtree(os.path.join(self.run_dir, "csrc"))
 
         # Generate a simulator
+        print("GENERATING SIMULATOR: {}".format(args))
         self.run_executable(args, cwd=self.run_dir)
 
         HammerVLSILogging.enable_colour = True
@@ -290,6 +302,7 @@ class VCS(HammerSimTool, SynopsysTool):
               return False
 
         # setup simulation arguments
+        print("EXEC FLAGS: {}".format(exec_flags))
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
         args.extend(exec_flags)
@@ -321,6 +334,7 @@ class VCS(HammerSimTool, SynopsysTool):
         bp = [] #  type: List[Process]
         running = 0
         ran = 0
+        print("Benchmarks: {}".format(self.benchmarks))
         for benchmark in self.benchmarks:
             bmark_run_dir = self.benchmark_run_dir(benchmark)
             # Make the rundir if it does not exist

@@ -126,7 +126,7 @@ class VCS(HammerSimTool, SynopsysTool):
           self.logger.error("VCS binary not found as expected at {0}".format(vcs_bin))
           return False
 
-        if not self.check_input_files([".v", ".sv", ".so", ".cc", ".c"]):
+        if not self.check_input_files([".v", ".v.gz", ".sv", ".so", ".cc", ".c"]):
           return False
 
         # We are switching working directories and we still need to find paths

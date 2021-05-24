@@ -8,7 +8,7 @@ par.icc:
   icc_bin_meta: lazysubst # we want later overrides to be able to affect icc_bin
 
   # DC version to use.
-  version: "L-2016.03-SP1"
+  version: "R-2020.09-SP1"
 
   # Path to a folder with files to copy.
   # e.g. if a folder named "src" is specified here, then the contents of
@@ -36,8 +36,38 @@ par.icc:
   # Floorplanning script to use (ICC_IN_FLOORPLAN_USER_FILE in the reference methodology).
   # Valid options are:
   # - manual - Specify a manual floorplanning script to use.
+  # - default - Use the "CREATE" option for "ICC_FLOORPLAN_INPUT" in the RM - ICC creates a default top-level chip floorplan
+  # - generate - Generate the floorplan script from the Hammer IR (user input) using the Floorplan API 
   # - annotations - Generate a floorplan from the hammer floorplanning DSL's annotations. (not implemented)
   #   If you specify this, you must also specify the floorplanning_script config below. The floorplanning_script config will be ignored in other modes.
   # TODO(edwardw): Put in new floorplanning thing here when done.
   floorplan_mode: manual
-  floorplan_script: null
+  floorplan_script: ""
+  # Path to the mcmm.scenarios file needed for initializing the design
+  mcmm_script: ""
+  
+  # This key is used to set the number of power strap groups/sets to be generated in the metal layers of the PDK. The recommended way to come
+  # up with this number is by estimating the die area from the results of the synthesis by Synopsys DC. Once the die area is known, the number
+  # of strap groups to be created can easily be deduced from the die's dimensions. By default, the number of power strap groups is set as 1.
+  # Approx. Die Area = 1.5 x Std.Cell Area after Synthesis
+  power_straps_num_groups: "1"
+
+  # These are the P/G and Signal ref cell names specific to the technology that needs to specified by the user for proper bumps assignment
+  VDD_ref: null
+  VDDIO_ref: null
+  VSS_ref: null
+  VSSIO_ref: null
+  Signal_ref: null
+ 
+synopsys:
+  # Folder where Synopsys reference methodologies have been extracted.
+  # It should contain files in the format of ICC-RM_$(ICC_VERSION).tar.
+  rm_dir: ""
+
+  # Directory where synopsys tools are installed. Contains subfolders like dc, icc, etc.
+  synopsys_home: ""
+
+  # License server information, to be overridden by some project generator.
+  # e.g. "port_a@server:port_b@server"
+  MGLS_LICENSE_FILE: ""
+  SNPSLMD_LICENSE_FILE: ""

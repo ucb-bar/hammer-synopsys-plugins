@@ -268,8 +268,8 @@ HammerTechnologyUtils.to_plain_item))
                 f.write("\n".join(self.generate_floorplan_tcl()))    
         elif floorplan_mode == "default":
             with open(floorplan_tcl, "w") as f:
-                f.write("create_floorplan -control_type aspect_ratio -core_aspect_ratio 1 -core_utilization 0.7 -left_io2core 30 "
-                        "-bottom_io2core 30 -right_io2core 30 -top_io2core 30 -start_first_row")                        
+                f.write("create_floorplan -control_type aspect_ratio -core_aspect_ratio 1 -core_utilization 0.7 -left_io2core 0 "
+                        "-bottom_io2core 0 -right_io2core 0 -top_io2core 0 -start_first_row")                        
         else:
             self.logger.error("Invalid floorplan_mode %s" % (floorplan_mode))
             return False
@@ -322,11 +322,9 @@ HammerTechnologyUtils.to_plain_item))
                 
                 elif constraint.type == PlacementConstraintType.Placement:
                     # TO VERIFY/TEST
-                    output.append("define_user_attribute -type boolean -class cell attribute_{name}".format(name=new_path))
-                    output.append("set_attribute {inst_name} attribute_{name} true".format(inst_name=new_path, name=new_path))
-                    output.append("create_placement_blockage -bbox {{{llx1} {lly1} {urx1} {ury1}}} -type partial "
-                                  "-blocked_percentage 50 -category attribute_{name}".format(llx1=constraint.x, lly1=constraint.y,
-                                   urx1=constraint.x + constraint.width, urx2=constraint.y + constraint.height, name=new_path))
+                    output.append("create_bounds -name {bound_name} -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -type hard "
+                                  "{inst_name}".format(bound_name=new_path, llx1=constraint.x, lly1=constraint.y,
+                                   urx1=constraint.x + constraint.width, urx2=constraint.y + constraint.height, inst_name=new_path))
                 
                 elif constraint.type in [PlacementConstraintType.HardMacro, PlacementConstraintType.Hierarchical]:
                     output.append("create_bounds -name {bound_name} -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -type hard "
@@ -379,7 +377,7 @@ HammerTechnologyUtils.to_plain_item))
             if bumps is not None:  
                 # Call the Bump-Placement API method
                 with open(place_bumps_tcl, "w") as f:
-                        f.write("\n".join(self.create_bumps()))
+                        f.write("\n".join(self.generate_bumps_tcl()))
                 self.verbose_append("source -echo -verbose {}".format(place_bumps_tcl))
             else:
                 self.logger.error("Bumps Placement Mode is manual but no bumps are specified!!")
@@ -392,7 +390,7 @@ HammerTechnologyUtils.to_plain_item))
 
         return True   
 
-    def create_bumps(self) -> List[str]:
+    def generate_bumps_tcl(self) -> List[str]:
         """
         Generates the Bump Placement Tcl sript based on the bumps assignment constraints specified by the user in Hammer IR
         """
@@ -503,7 +501,7 @@ HammerTechnologyUtils.to_plain_item))
                 if pins is not None:
                     # Call the Pin-Placement API method
                     with open(place_pins_tcl, "w") as f:
-                            f.write("\n".join(self.edit_pins()))
+                            f.write("\n".join(self.generate_pins_tcl()))
                     self.verbose_append("source -echo -verbose {}".format(place_pins_tcl))
                 else:
                     self.logger.error("Pins are set to be generated but no pins are specified!!!")
@@ -520,7 +518,7 @@ HammerTechnologyUtils.to_plain_item))
 
         return True    
 
-    def edit_pins(self) -> List[str]:
+    def generate_pins_tcl(self) -> List[str]:
         """Generates the Pin Placement Tcl sript based on the pin assignment constraints specified by the user in Hammer IR """
         output = [] #type: List[str]
 
@@ -721,7 +719,7 @@ HammerTechnologyUtils.to_plain_item))
         verbose_append("set_place_opt_strategy -consider_routing true")
         verbose_append("create_fp_placement -effort high")
         verbose_append("\n".join(self.pg_connection()))
-        verbose_append("place_opt -effort high -congestion")
+        verbose_append("place_opt -effort {effort} -congestion".format(effort = self.get_setting("par.icc.place_opt_effort")))
         return True
 
     def clock_tree(self) -> bool:
@@ -810,12 +808,9 @@ HammerTechnologyUtils.to_plain_item))
             ""
         )
 
-        gds_files = self.technology.read_libs([
-            hammer_tech.filters.gds_filter
-        ], hammer_tech.HammerTechnologyUtils.to_plain_item)
-
-        # Synopsys ICC doesn't support gds_merge and gds_precision features. 
-        # They have to be done in the later stages during Physical Verification.
+        if (self.get_setting("par.inputs.gds_merge") == "true") or (self.get_setting("par.inputs.gds_precision_mode") == "manual"):
+            self.logger.warning("Synopsys ICC doesn't support gds_merge and gds_precision features. "
+                                "They have to be done in the later stages during Physical Verification.")
 
         self.verbose_append("set_write_stream_options -skip_ref_lib_cells")
         self.verbose_append("set_write_stream_options -output_pin text -keep_data_type")

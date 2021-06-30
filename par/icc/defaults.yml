@@ -7,7 +7,7 @@ par.icc:
   icc_bin: "${synopsys.synopsys_home}/icc/${par.icc.version}/bin/icc_shell"
   icc_bin_meta: lazysubst # we want later overrides to be able to affect icc_bin
 
-  # DC version to use.
+  # ICC version to use.
   version: "R-2020.09-SP1"
 
   # Path to a folder with files to copy.
@@ -33,10 +33,15 @@ par.icc:
   # Set to null if unused.
   common_setup_appendix_tcl_contents: null
 
-  # Floorplanning script to use (ICC_IN_FLOORPLAN_USER_FILE in the reference methodology).
+  # Placement effort.
+  # Valid options - low (fastest), medium, and high (slowest).
+  # Default - 'high' to improve QoR
+  place_opt_effort: "high"
+
+  # Floorplanning script to use.
   # Valid options are:
   # - manual - Specify a manual floorplanning script to use.
-  # - default - Use the "CREATE" option for "ICC_FLOORPLAN_INPUT" in the RM - ICC creates a default top-level chip floorplan
+  # - default - ICC creates a default top-level chip floorplan
   # - generate - Generate the floorplan script from the Hammer IR (user input) using the Floorplan API 
   # - annotations - Generate a floorplan from the hammer floorplanning DSL's annotations. (not implemented)
   #   If you specify this, you must also specify the floorplanning_script config below. 

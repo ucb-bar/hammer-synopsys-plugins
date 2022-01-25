@@ -71,13 +71,17 @@ class ICVLVS(HammerLVSTool):
         # set the command arguments
         args = [
             self.get_setting("lvs.icv.icv_lvs_bin"),
-            "-64",  # always want to be in 64-bit mode
-            "-dp{}".format(self.get_setting("vlsi.core.max_threads")),
+            "-64"]  # always want to be in 64-bit mode
+        if self.version() >= self.version_number("R-2020.09"):
+            args.extend(["-host_init", str(self.get_setting("vlsi.core.max_threads"))])
+        else:
+            args.append("-dp{}".format(self.get_setting("vlsi.core.max_threads")))
+        args.extend([
             "-clf",
             self.lvs_args_file,
             "-vue",  # needed to view results in VUE
             "-verbose" # get more than % complete
-        ]
+        ])
         args.append(self.lvs_run_file)
 
         HammerVLSILogging.enable_colour = False

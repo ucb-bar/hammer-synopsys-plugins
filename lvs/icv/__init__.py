@@ -147,10 +147,11 @@ class ICVLVS(HammerLVSTool):
         if unmatched:
             raise NotImplementedError("Unsupported netlist type for files: " + str(unmatched))
 
-        args = [self.get_setting("lvs.icv.icv_nettran_bin"),
-                "-sp", " ".join(spice_files),
+        args = [self.get_setting("lvs.icv.icv_nettran_bin"), "-sp"]
+        args.extend(spice_files)
+        args.extend([
                 "-verilog", " ".join(verilog_files),
-                "-outName", self.converted_icv_file]
+                "-outName", self.converted_icv_file])
         HammerVLSILogging.enable_colour = False
         HammerVLSILogging.enable_tag = False
         self.run_executable(args, cwd=self.run_dir)  # TODO: check for errors and deal with them

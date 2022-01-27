@@ -71,13 +71,17 @@ class ICVLVS(HammerLVSTool):
         # set the command arguments
         args = [
             self.get_setting("lvs.icv.icv_lvs_bin"),
-            "-64",  # always want to be in 64-bit mode
-            "-dp{}".format(self.get_setting("vlsi.core.max_threads")),
+            "-64"]  # always want to be in 64-bit mode
+        if self.version() >= self.version_number("R-2020.09"):
+            args.extend(["-host_init", str(self.get_setting("vlsi.core.max_threads"))])
+        else:
+            args.append("-dp{}".format(self.get_setting("vlsi.core.max_threads")))
+        args.extend([
             "-clf",
             self.lvs_args_file,
             "-vue",  # needed to view results in VUE
             "-verbose" # get more than % complete
-        ]
+        ])
         args.append(self.lvs_run_file)
 
         HammerVLSILogging.enable_colour = False
@@ -143,10 +147,11 @@ class ICVLVS(HammerLVSTool):
         if unmatched:
             raise NotImplementedError("Unsupported netlist type for files: " + str(unmatched))
 
-        args = [self.get_setting("lvs.icv.icv_nettran_bin"),
-                "-sp", " ".join(spice_files),
+        args = [self.get_setting("lvs.icv.icv_nettran_bin"), "-sp"]
+        args.extend(spice_files)
+        args.extend([
                 "-verilog", " ".join(verilog_files),
-                "-outName", self.converted_icv_file]
+                "-outName", self.converted_icv_file])
         HammerVLSILogging.enable_colour = False
         HammerVLSILogging.enable_tag = False
         self.run_executable(args, cwd=self.run_dir)  # TODO: check for errors and deal with them

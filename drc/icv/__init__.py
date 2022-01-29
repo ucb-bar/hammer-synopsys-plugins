@@ -82,11 +82,11 @@ class ICVDRC(HammerDRCTool):
 
         # TODO: check that drc run was successful
 
-        # Create view_drc script & icwbev macro script file
+        # Create view_drc script & icvwb macro script file
         # See the README for how this works
         os.makedirs(self.generated_scripts_dir, exist_ok=True)
 
-        with open(self.icwbev_macrofile, "w") as f:
+        with open(self.icvwb_macrofile, "w") as f:
             # Open socket
             f.write("user_socket open 0\n")
             # Layer mapping
@@ -98,17 +98,17 @@ class ICVDRC(HammerDRCTool):
             f.write("""
         cd {run_dir}
         source enter
-        # Start Synopsys IC WorkBench Edit/View Plus and wait for port to open before starting VUE
-        {icwbev} -socket {port} -run {macrofile} {gds} &
+        # Start Synopsys IC Validator WorkBench and wait for port to open before starting VUE
+        {icvwb} -socket {port} -run {macrofile} {gds} &
         while ! nc -z localhost {port}; do
             sleep 0.1
         done
         {icv_vue} -64 -load {results} -lay icwb -layArgs Port {port}
             """.format(
                 run_dir=self.run_dir,
-                icwbev=self.get_setting("drc.icv.icwbev_bin"),
-                port=self.get_setting("drc.icv.icwbev_port"),
-                macrofile=self.icwbev_macrofile,
+                icvwb=self.get_setting("drc.icv.icvwb_bin"),
+                port=self.get_setting("drc.icv.icvwb_port"),
+                macrofile=self.icvwb_macrofile,
                 gds=self.layout_file,
                 icv_vue=self.get_setting("drc.icv.icv_vue_bin"),
                 results=self.drc_results_db
@@ -166,8 +166,8 @@ class ICVDRC(HammerDRCTool):
         return os.path.join(self.generated_scripts_dir, "view_drc")
 
     @property
-    def icwbev_macrofile(self) -> str:
-        return os.path.join(self.generated_scripts_dir, "icwbev_macrofile")
+    def icvwb_macrofile(self) -> str:
+        return os.path.join(self.generated_scripts_dir, "icvwb_macrofile")
 
     @property
     def drc_run_file(self) -> str:

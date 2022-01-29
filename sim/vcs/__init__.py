@@ -76,6 +76,7 @@ class VCS(HammerSimTool, SynopsysTool):
     def env_vars(self) -> Dict[str, str]:
         v = dict(super().env_vars)
         v["VCS_HOME"] = self.get_setting("sim.vcs.vcs_home")
+        v["VERDI_HOME"] = self.get_setting("sim.vcs.verdi_home")
         v["SNPSLMD_LICENSE_FILE"] = self.get_setting("synopsys.SNPSLMD_LICENSE_FILE")
         return v
 

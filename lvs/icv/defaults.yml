@@ -10,20 +10,20 @@ lvs.icv:
     icv_vue_bin: "${synopsys.synopsys_home}/icv/${lvs.icv.version}/bin/LINUX.64/icv_vue"
     icv_vue_bin_meta: lazysubst
 
-    icwbev_bin: "${synopsys.synopsys_home}/icwbev_plus/${lvs.icv.icwbev_version}/bin/icwbev"
-    icwbev_bin_meta: lazysubst
+    icvwb_bin: "${synopsys.synopsys_home}/icvwb/${lvs.icv.icvwb_version}/bin/icvwb"
+    icvwb_bin_meta: lazysubst
 
     ICV_HOME_DIR: "${synopsys.synopsys_home}/icv/${lvs.icv.version}"
     ICV_HOME_DIR_meta: lazysubst
 
     # type: str
-    version: "O-2018.06-SP2-3"
+    version: "S-2021.06-SP3-2"
     # type: str
-    icwbev_version: "O-2018.06-SP2"
-    # Port for VUE (violation browser) to communicate with ICWBEV (layout browser)
+    icvwb_version: "S-2021.06-SP2"
+    # Port for VUE (violation browser) to communicate with ICVWB (layout browser)
     # Any open port 1000 to 65536 allowed
     # type: int
-    icwbev_port: 1234
+    icvwb_port: 1234
 
     # Symbolic variables passed as -D flags to ICV command.
     # Alternatively, #define <var> <val> can be appended as additional_lvs_text.

@@ -149,9 +149,8 @@ class ICVLVS(HammerLVSTool):
 
         args = [self.get_setting("lvs.icv.icv_nettran_bin"), "-sp"]
         args.extend(spice_files)
-        args.extend([
-                "-verilog", " ".join(verilog_files),
-                "-outName", self.converted_icv_file])
+        args.extend(["-verilog"] + verilog_files)
+        args.extend(["-outName", self.converted_icv_file])
         HammerVLSILogging.enable_colour = False
         HammerVLSILogging.enable_tag = False
         self.run_executable(args, cwd=self.run_dir)  # TODO: check for errors and deal with them

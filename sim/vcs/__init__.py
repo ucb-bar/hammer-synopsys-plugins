@@ -146,8 +146,12 @@ class VCS(HammerSimTool, SynopsysTool):
         # Build args
         args = [
           vcs_bin,
-          "-full64"
+          "-full64",
+          "-lca" # enable advanced features access, add'l no-cost licenses may be req'd depending on feature
         ]
+
+        if self.version() >= self.version_number("M-2017.03"):
+            args.append("-fgp")
 
         if timescale is not None:
             args.append('-timescale={}'.format(timescale))
@@ -185,7 +189,7 @@ class VCS(HammerSimTool, SynopsysTool):
         if self.level == SimulationLevel.GateLevel:
             args.extend(['-P'])
             args.extend([access_tab_filename])
-            args.extend(['-debug'])
+            args.extend(['-debug_access+all']) # since I-2014.03
             if self.get_setting("sim.inputs.timing_annotated"):
                 args.extend(["+neg_tchk"])
                 args.extend(["+sdfverbose"])
@@ -293,6 +297,10 @@ class VCS(HammerSimTool, SynopsysTool):
         # setup simulation arguments
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
+        if self.version() >= self.version_number("M-2017.03"):
+            # num_threads is in addition to a master thread, so reduce by 1
+            num_threads=int(self.get_setting("vlsi.core.max_threads")) - 1
+            args.append("-fgp=num_threads:{threads},num_fsdb_threads:{threads},allow_less_cores,dynamictoggle".format(threads=num_threads))
         args.extend(exec_flags)
         if self.level == SimulationLevel.GateLevel:
             if saif_mode != "none":

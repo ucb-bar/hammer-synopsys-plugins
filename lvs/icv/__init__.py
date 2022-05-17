@@ -147,7 +147,7 @@ class ICVLVS(HammerLVSTool):
         if unmatched:
             raise NotImplementedError("Unsupported netlist type for files: " + str(unmatched))
 
-        args = [self.get_setting("lvs.icv.icv_nettran_bin"), "-sp"]
+        args = [self.get_setting("lvs.icv.icv_nettran_bin"), "-sp-autoDetectBusdelimiter", "FIRST", "-sp"]
         args.extend(spice_files)
         args.extend(["-verilog"] + verilog_files)
         args.extend(["-outName", self.converted_icv_file])

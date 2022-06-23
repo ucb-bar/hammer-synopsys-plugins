@@ -191,7 +191,7 @@ class VCS(HammerSimTool, SynopsysTool):
         for define in defines:
             args.extend(['+define+' + define])
 
-        if self.level == FlowLevel.GateLevel:
+        if self.is_gatelevel():
             args.extend(['-P'])
             args.extend([access_tab_filename])
             if self.get_setting("sim.inputs.timing_annotated"):
@@ -290,7 +290,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 find_regs_run_tcl.append("exit")
                 f.write("\n".join(find_regs_run_tcl))
 
-        if self.level == FlowLevel.GateLevel:
+        if self.is_gatelevel():
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
@@ -330,12 +330,12 @@ class VCS(HammerSimTool, SynopsysTool):
         # setup simulation arguments
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
-        if self.version() >= self.version_number("M-2017.03"):
-            # num_threads is in addition to a master thread, so reduce by 1
-            num_threads=int(self.get_setting("vlsi.core.max_threads")) - 1
-            args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
+        #if self.version() >= self.version_number("M-2017.03"):
+        #    # num_threads is in addition to a master thread, so reduce by 1
+        #    num_threads=int(self.get_setting("vlsi.core.max_threads"))
+        #    args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
         args.extend(exec_flags)
-        if self.level == FlowLevel.GateLevel:
+        if self.is_gatelevel():
             if saif_mode != "none":
                 args.extend([
                     # Reduce the number ucli instructions by auto starting and auto stopping

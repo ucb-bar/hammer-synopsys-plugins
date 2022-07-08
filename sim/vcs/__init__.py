@@ -262,7 +262,6 @@ class VCS(HammerSimTool, SynopsysTool):
             self.logger.warning("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, full, or none. Defaulting to none.")
             saif_mode = "none"
 
-        # new
         if self.level == FlowLevel.RTL and saif_mode != "none":
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
@@ -332,10 +331,10 @@ class VCS(HammerSimTool, SynopsysTool):
         # setup simulation arguments
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
-        #if self.version() >= self.version_number("M-2017.03"):
-        #    # num_threads is in addition to a master thread, so reduce by 1
-        #    num_threads=int(self.get_setting("vlsi.core.max_threads"))
-        #    args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
+        if self.version() >= self.version_number("M-2017.03"):
+            # num_threads is in addition to a master thread, so reduce by 1
+            num_threads=int(self.get_setting("vlsi.core.max_threads"))
+            args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
         args.extend(exec_flags)
         if self.level.is_gatelevel():
             if saif_mode != "none":
@@ -346,7 +345,6 @@ class VCS(HammerSimTool, SynopsysTool):
                     '-ucli2Proc',
                 ])
             args.extend(["-ucli", "-do", self.run_tcl_path])
-        # new
         elif self.level == FlowLevel.RTL and saif_mode != "none":
             args.extend([
                 # Reduce the number ucli instructions by auto starting and auto stopping

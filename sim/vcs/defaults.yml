@@ -6,11 +6,9 @@ sim.vcs:
   vcs_bin_meta: lazysubst
   vcs_home: "${synopsys.synopsys_home}/vcs/${sim.vcs.version}"
   vcs_home_meta: lazysubst
-  # verdi_home: "${synopsys.synopsys_home}/verdi/${sim.vcs.version}"
-  # verdi_home: "${synopsys.synopsys_home}/verdi/P-2019.06-SP2-12"
-  verdi_home: "/tools/synopsys/verdi/P-2019.06-SP2-12/verdi/P-2019.06-SP2-12"
+  verdi_home: "${synopsys.synopsys_home}/verdi/${sim.vcs.version}"
   verdi_home_meta: lazysubst
 
   # VCS version to use.
   # Used to locate the binary - e.g. the 'M-2017.03' in ${synopsys.synopsys_home}/vcs/M-2017.03/bin/vcs
-  version: "M-2017.03"
+  version: "P-2019.06-SP2-5"

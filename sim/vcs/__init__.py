@@ -191,7 +191,7 @@ class VCS(HammerSimTool, SynopsysTool):
         for define in defines:
             args.extend(['+define+' + define])
 
-        if self.is_gatelevel():
+        if self.level.is_gatelevel():
             args.extend(['-P'])
             args.extend([access_tab_filename])
             if self.get_setting("sim.inputs.timing_annotated"):
@@ -230,6 +230,8 @@ class VCS(HammerSimTool, SynopsysTool):
         HammerVLSILogging.enable_colour = True
         HammerVLSILogging.enable_tag = True
 
+        self.logger.warning("Simulator executable exists: " + str(os.path.exists(self.simulator_executable_path)))
+        self.logger.warning("Simulator executable Path: " + self.simulator_executable_path)
         return os.path.exists(self.simulator_executable_path)
 
     def run_simulation(self) -> bool:
@@ -290,7 +292,7 @@ class VCS(HammerSimTool, SynopsysTool):
                 find_regs_run_tcl.append("exit")
                 f.write("\n".join(find_regs_run_tcl))
 
-        if self.is_gatelevel():
+        if self.level.is_gatelevel():
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
@@ -335,7 +337,7 @@ class VCS(HammerSimTool, SynopsysTool):
         #    num_threads=int(self.get_setting("vlsi.core.max_threads"))
         #    args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
         args.extend(exec_flags)
-        if self.is_gatelevel():
+        if self.level.is_gatelevel():
             if saif_mode != "none":
                 args.extend([
                     # Reduce the number ucli instructions by auto starting and auto stopping

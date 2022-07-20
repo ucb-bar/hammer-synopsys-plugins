@@ -230,8 +230,6 @@ class VCS(HammerSimTool, SynopsysTool):
         HammerVLSILogging.enable_colour = True
         HammerVLSILogging.enable_tag = True
 
-        self.logger.warning("Simulator executable exists: " + str(os.path.exists(self.simulator_executable_path)))
-        self.logger.warning("Simulator executable Path: " + self.simulator_executable_path)
         return os.path.exists(self.simulator_executable_path)
 
     def run_simulation(self) -> bool:

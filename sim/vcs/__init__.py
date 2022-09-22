@@ -331,8 +331,8 @@ class VCS(HammerSimTool, SynopsysTool):
         args.extend(exec_flags_prepend)
         if self.version() >= self.version_number("M-2017.03"):
             # num_threads is in addition to a master thread, so reduce by 1
-            num_threads=int(self.get_setting("vlsi.core.max_threads"))
-            args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=num_threads))
+            num_threads=int(self.get_setting("vlsi.core.max_threads")) - 1
+            args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=max(num_threads,1)))
         args.extend(exec_flags)
         if self.level.is_gatelevel():
             if saif_mode != "none":

@@ -11,4 +11,4 @@ sim.vcs:
 
   # VCS version to use.
   # Used to locate the binary - e.g. the 'M-2017.03' in ${synopsys.synopsys_home}/vcs/M-2017.03/bin/vcs
-  version: "M-2017.03"
+  version: "P-2019.06-SP2-5"

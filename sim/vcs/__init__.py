@@ -11,7 +11,7 @@ from hammer_logging import HammerVLSILogging
 
 from typing import Dict, List, Optional, Callable, Tuple
 
-from hammer_vlsi import SimulationLevel, TimeValue
+from hammer_vlsi import FlowLevel, TimeValue
 
 import hammer_utils
 import hammer_tech
@@ -35,6 +35,10 @@ class VCS(HammerSimTool, SynopsysTool):
         # TODO: support automatic waveform generation in a similar fashion to SAIFs
         self.output_waveforms = []
         self.output_saifs = []
+        self.output_top_module = self.top_module
+        self.output_tb_name = self.get_setting("sim.inputs.tb_name")
+        self.output_tb_dut = self.get_setting("sim.inputs.tb_dut")
+        self.output_level = self.get_setting("sim.inputs.level")
         if self.get_setting("sim.inputs.saif.mode") != "none":
             if not self.benchmarks:
                 self.output_saifs.append(os.path.join(self.run_dir, "ucli.saif"))
@@ -87,7 +91,7 @@ class VCS(HammerSimTool, SynopsysTool):
         return verilog_sim_files
 
     def write_gl_files(self) -> bool:
-        if self.level == SimulationLevel.RTL:
+        if self.level == FlowLevel.RTL:
             return True
 
         tb_prefix = self.get_setting("sim.inputs.tb_dut")
@@ -187,7 +191,7 @@ class VCS(HammerSimTool, SynopsysTool):
         for define in defines:
             args.extend(['+define+' + define])
 
-        if self.level == SimulationLevel.GateLevel:
+        if self.level.is_gatelevel():
             args.extend(['-P'])
             args.extend([access_tab_filename])
             if self.get_setting("sim.inputs.timing_annotated"):
@@ -256,8 +260,36 @@ class VCS(HammerSimTool, SynopsysTool):
             self.logger.warning("Bad saif_mode:${saif_mode}. Valid modes are time, trigger, full, or none. Defaulting to none.")
             saif_mode = "none"
 
+        if self.level == FlowLevel.RTL and saif_mode != "none":
+            with open(self.run_tcl_path, "w") as f:
+                find_regs_run_tcl = []
+                if saif_mode != "none":
+                    if saif_mode == "time":
+                        stime = TimeValue(saif_start_time[0])
+                        find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_start_trigger_raw)
+                        find_regs_run_tcl.append("run")
+                    elif saif_mode == "full":
+                        pass
+                    # start saif
+                    find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
+                    find_regs_run_tcl.append("config endofsim noexit")
+                    if saif_mode == "time":
+                        etime = TimeValue(saif_end_time)
+                        find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
+                    elif saif_mode == "trigger_raw":
+                        find_regs_run_tcl.append(saif_end_trigger_raw)
+                        find_regs_run_tcl.append("run")
+                    elif saif_mode == "full":
+                        find_regs_run_tcl.append("run")
+                    # stop saif
+                    find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
+                find_regs_run_tcl.append("run")
+                find_regs_run_tcl.append("exit")
+                f.write("\n".join(find_regs_run_tcl))
 
-        if self.level == SimulationLevel.GateLevel:
+        if self.level.is_gatelevel():
             with open(self.run_tcl_path, "w") as f:
                 find_regs_run_tcl = []
                 find_regs_run_tcl.append("source " + force_regs_filename)
@@ -302,7 +334,7 @@ class VCS(HammerSimTool, SynopsysTool):
             num_threads=int(self.get_setting("vlsi.core.max_threads")) - 1
             args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=max(num_threads,1)))
         args.extend(exec_flags)
-        if self.level == SimulationLevel.GateLevel:
+        if self.level.is_gatelevel():
             if saif_mode != "none":
                 args.extend([
                     # Reduce the number ucli instructions by auto starting and auto stopping
@@ -310,6 +342,14 @@ class VCS(HammerSimTool, SynopsysTool):
                     # Only needed if we are using start time pruning so we can return to ucli after endofsim
                     '-ucli2Proc',
                 ])
+            args.extend(["-ucli", "-do", self.run_tcl_path])
+        elif self.level == FlowLevel.RTL and saif_mode != "none":
+            args.extend([
+                # Reduce the number ucli instructions by auto starting and auto stopping
+                '-saif_opt+toggle_start_at_set_region+toggle_stop_at_toggle_report',
+                # Only needed if we are using start time pruning so we can return to ucli after endofsim
+                '-ucli2Proc',
+            ])
             args.extend(["-ucli", "-do", self.run_tcl_path])
         args.extend(exec_flags_append)
 

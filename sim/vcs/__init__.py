@@ -155,7 +155,7 @@ class VCS(HammerSimTool, SynopsysTool):
           "-debug_access+all" # since I-2014.03, req'd for FSDB dumping & force regs
         ]
 
-        if self.version() >= self.version_number("M-2017.03"):
+        if self.get_setting("sim.vcs.fgp") and self.version() >= self.version_number("M-2017.03"):
             args.append("-fgp")
 
         if timescale is not None:
@@ -329,7 +329,7 @@ class VCS(HammerSimTool, SynopsysTool):
         # setup simulation arguments
         args = [ self.simulator_executable_path ]
         args.extend(exec_flags_prepend)
-        if self.version() >= self.version_number("M-2017.03"):
+        if self.get_setting("sim.vcs.fgp") and self.version() >= self.version_number("M-2017.03"):
             # num_threads is in addition to a master thread, so reduce by 1
             num_threads=int(self.get_setting("vlsi.core.max_threads")) - 1
             args.append("-fgp=num_threads:{threads},num_fsdb_threads:0,allow_less_cores,dynamictoggle".format(threads=max(num_threads,1)))

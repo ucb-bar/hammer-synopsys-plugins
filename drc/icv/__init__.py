@@ -151,10 +151,12 @@ class ICVDRC(HammerDRCTool):
                 f.write(" -D " + " -D ".join(map(lambda x: " -D ".join("=".join(_) for _ in x.items()), defines)))
 
             # Preprocessor directories to include
+            print("HEHRHEHERHEHR")
+            print(self.get_setting("drc.icv.defines"))
             include_dirs = self.get_setting("drc.icv.include_dirs")  # type: List[str]
             assert isinstance(include_dirs, list)
             if len(include_dirs) > 0:
-                f.write(" -I " + " ".join(include_dirs))
+                f.write(" -I " + " -I ".join(include_dirs))
         return True
 
     @property

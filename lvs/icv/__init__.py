@@ -194,7 +194,7 @@ class ICVLVS(HammerLVSTool):
             include_dirs = self.get_setting("lvs.icv.include_dirs")  # type: List[str]
             assert isinstance(include_dirs, list)
             if len(include_dirs) > 0:
-                f.write(" -I " + " ".join(include_dirs))
+                f.write(" -I " + " -I ".join(include_dirs))
         return True
 
     @property

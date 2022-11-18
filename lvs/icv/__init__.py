@@ -11,7 +11,7 @@ from hammer_logging import HammerVLSILogging
 from hammer_utils import HammerFiletype, get_filetype
 import hammer_tech
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import os
 import textwrap
@@ -195,6 +195,11 @@ class ICVLVS(HammerLVSTool):
             assert isinstance(include_dirs, list)
             if len(include_dirs) > 0:
                 f.write(" -I " + " -I ".join(include_dirs))
+
+            # Config runset file
+            config_rs = self.get_setting("drc.icv.config_runset")  # type: Optional[str]
+            if config_rs is not None:
+                f.write(" -config_runset" + config_rs)
         return True
 
     @property

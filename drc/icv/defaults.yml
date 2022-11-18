@@ -31,3 +31,7 @@ drc.icv:
     # type: List[str]
     include_dirs: []
 
+    # Config runset file passed in as -config_runset to the ICV command.
+    # Generally used for waivers.
+    # type: Optional[str]
+    config_runset: null

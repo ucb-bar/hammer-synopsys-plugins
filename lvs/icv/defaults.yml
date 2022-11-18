@@ -33,3 +33,8 @@ lvs.icv:
     # Preprocessor include directories passed as -I to the ICV command.
     # type: List[str]
     include_dirs: []
+
+    # Config runset file passed in as -config_runset to the ICV command.
+    # Generally used to modify compare behavior.
+    # type: Optional[str]
+    config_runset: null

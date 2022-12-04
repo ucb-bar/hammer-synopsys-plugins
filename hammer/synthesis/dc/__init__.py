@@ -7,14 +7,16 @@
 
 from typing import List, Optional
 
-from hammer_vlsi import HammerSynthesisTool, HammerToolStep
-from hammer_vlsi import SynopsysTool
-from hammer_logging import HammerVLSILogging
-import hammer_tech
-from hammer_tech import HammerTechnologyUtils
+from hammer.vlsi import HammerSynthesisTool, HammerToolStep
+from hammer.vlsi import SynopsysTool
+from hammer.logging import HammerVLSILogging
+import hammer.tech as hammer_tech
+from hammer.tech import HammerTechnologyUtils
 
 import os
 import re
+from pathlib import Path
+import importlib.resources
 
 class DC(HammerSynthesisTool, SynopsysTool):
     def fill_outputs(self) -> bool:
@@ -125,12 +127,12 @@ class DC(HammerSynthesisTool, SynopsysTool):
 
         # Get libraries.
         lib_args = self.technology.read_libs([
-            hammer_tech.filters.timing_db_filter._replace(tag="lib"),
-            hammer_tech.filters.milkyway_lib_dir_filter._replace(tag="milkyway"),
-            hammer_tech.filters.tlu_max_cap_filter._replace(tag="tlu_max"),
-            hammer_tech.filters.tlu_min_cap_filter._replace(tag="tlu_min"),
-            hammer_tech.filters.tlu_map_file_filter._replace(tag="tlu_map"),
-            hammer_tech.filters.milkyway_techfile_filter._replace(tag="tf")
+            hammer_tech.filters.timing_db_filter.copy(update={'tag': 'lib'}),
+            hammer_tech.filters.milkyway_lib_dir_filter.copy(update={'tag': "milkyway"}),
+            hammer_tech.filters.tlu_max_cap_filter.copy(update={'tag': "tlu_max"}),
+            hammer_tech.filters.tlu_min_cap_filter.copy(update={'tag': "tlu_min"}),
+            hammer_tech.filters.tlu_map_file_filter.copy(update={'tag': "tlu_map"}),
+            hammer_tech.filters.milkyway_techfile_filter.copy(update={'tag': "tf"})
         ], HammerTechnologyUtils.to_command_line_args)
 
         # Pre-extract the tarball (so that we can make TCL modifications in Python)
@@ -147,12 +149,20 @@ class DC(HammerSynthesisTool, SynopsysTool):
           compile_args = []
 
         # Build args.
+        syn_script_path = Path(self.technology.cache_dir) / "run-synthesis"
+        syn_script_txt = importlib.resources.read_text("hammer.synthesis.dc.tools", "run-synthesis")
+        syn_script_path.write_text(syn_script_txt)
+
+        tcl_path = Path(self.technology.cache_dir) / "find_regs.tcl"
+        tcl_txt = importlib.resources.read_text("hammer.synthesis.dc.tools", "find_regs.tcl")
+        tcl_path.write_text(tcl_txt)
+
         args = [
-            os.path.join(self.tool_dir, "tools", "run-synthesis"),
+            syn_script_path,
             "--dc", dc_bin,
             "--clock_constraints_fragment", clock_constraints_fragment,
             "--preferred_routing_directions_fragment", preferred_routing_directions_fragment,
-            "--find_regs_tcl", os.path.join(self.tool_dir, "tools", "find-regs.tcl"),
+            "--find_regs_tcl", tcl_path,
             "--run_dir", self.run_dir,
             "--top", self.top_module
         ]

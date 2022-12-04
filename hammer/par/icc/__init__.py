@@ -13,15 +13,15 @@ from os.path import dirname
 from typing import List, Optional,Callable, Tuple, Set, Any, cast, Dict
 from decimal import Decimal
 
-from hammer_utils import get_or_else, optional_map
-import hammer_tech
-from hammer_tech import RoutingDirection, Metal, LibraryFilter
-from hammer_vlsi import HammerTool, HammerToolHookAction, HammerPlaceAndRouteTool, HammerToolStep, PlacementConstraintType, HierarchicalMode, ObstructionType, Margins, Supply, PlacementConstraint, MMMCCornerType
-from hammer_vlsi import SynopsysTool
-from hammer_logging import HammerVLSILogging
-from hammer_tech import HammerTechnologyUtils
-import specialcells
-from specialcells import CellType, SpecialCell
+from hammer.utils import get_or_else, optional_map
+import hammer.tech as hammer_tech
+from hammer.tech import RoutingDirection, Metal, LibraryFilter
+from hammer.vlsi import HammerTool, HammerToolHookAction, HammerPlaceAndRouteTool, HammerToolStep, PlacementConstraintType, HierarchicalMode, ObstructionType, Margins, Supply, PlacementConstraint, MMMCCornerType
+from hammer.vlsi import SynopsysTool
+from hammer.logging import HammerVLSILogging
+from hammer.tech import HammerTechnologyUtils
+from hammer.tech.specialcells import CellType, SpecialCell
+from hammer.vlsi.constraints import BumpsDefinition
 
 class ICC(HammerPlaceAndRouteTool, SynopsysTool):
 
@@ -324,12 +324,12 @@ HammerTechnologyUtils.to_plain_item))
                     # TO VERIFY/TEST
                     output.append("create_bounds -name {bound_name} -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -type hard "
                                   "{inst_name}".format(bound_name=new_path, llx1=constraint.x, lly1=constraint.y,
-                                   urx1=constraint.x + constraint.width, urx2=constraint.y + constraint.height, inst_name=new_path))
+                                   urx1=constraint.x + constraint.width, ury1=constraint.y + constraint.height, inst_name=new_path))
                 
                 elif constraint.type in [PlacementConstraintType.HardMacro, PlacementConstraintType.Hierarchical]:
                     output.append("create_bounds -name {bound_name} -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -type hard "
                                   "{inst_name}".format(bound_name=new_path, llx1=constraint.x, lly1=constraint.y,
-                                   urx1=constraint.x + constraint.width, urx2=constraint.y + constraint.height, inst_name=new_path))
+                                   urx1=constraint.x + constraint.width, ury1=constraint.y + constraint.height, inst_name=new_path))
                     spacing = self.get_setting("par.blockage_spacing")
                     if constraint.top_layer is not None:
                         current_top_layer = constraint.top_layer
@@ -347,19 +347,19 @@ HammerTechnologyUtils.to_plain_item))
                     # TO VERIFY/TEST
                     obs_types = get_or_else(constraint.obs_types, [])  # type: List[ObstructionType]
                     if ObstructionType.Place in obs_types:
-                        output.append("create_placement_blockage -bbox {{llx1} {lly1} {urx1} {ury1}} -type hard".format(llx1=constraint.x,
-                                       lly1=constraint.y, urx1=constraint.x + constraint.width, urx2=constraint.y + constraint.height))
+                        output.append("create_placement_blockage -bbox {{{llx1} {lly1} {urx1} {ury1}}} -type hard".format(llx1=constraint.x,
+                                       lly1=constraint.y, urx1=constraint.x + constraint.width, ury1=constraint.y + constraint.height))
 
                     if ObstructionType.Route in obs_types:
-                        output.append("create_route_guide -coordinate {{llx1} {lly1} {urx1} {ury1}} -no_signal_layers {{{layers}}} " 
+                        output.append("create_route_guide -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -no_signal_layers {{{layers}}} " 
                                       "-zero_min_spacing".format(llx1=constraint.x, lly1=constraint.y, urx1=constraint.x + 
-                                                                 constraint.width, urx2=constraint.y + constraint.height,
+                                                                 constraint.width, ury1=constraint.y + constraint.height,
                                         layers="all" if constraint.layers is None else " ".join(get_or_else(constraint.layers, [])) ))
 
                     if ObstructionType.Power in obs_types:
-                        output.append("create_route_guide -coordinate {{llx1} {lly1} {urx1} {ury1}} -no_preroute_layers {{{layers}}} " 
+                        output.append("create_route_guide -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -no_preroute_layers {{{layers}}} " 
                                       "-zero_min_spacing".format(llx1=constraint.x, lly1=constraint.y, urx1=constraint.x +
-                                                                 constraint.width, urx2=constraint.y + constraint.height,
+                                                                 constraint.width, ury1=constraint.y + constraint.height,
                                         layers="all" if constraint.layers is None else " ".join(get_or_else(constraint.layers, [])) ))
 
                 else:
@@ -397,6 +397,7 @@ HammerTechnologyUtils.to_plain_item))
         output = [] #type: List[str]
        
         bumps = self.get_bumps()
+        assert isinstance(bumps, BumpsDefinition) # bumps not be None
         bump_array_width = Decimal(str((bumps.x - 1) * bumps.pitch))
         bump_array_height = Decimal(str((bumps.y - 1) * bumps.pitch))
         fp_consts = self.get_placement_constraints()
@@ -417,8 +418,8 @@ HammerTechnologyUtils.to_plain_item))
         block_layer = self.get_setting("vlsi.technology.bump_block_cut_layer")  # type: str
             
         for bump in bumps.assignments:
-            output.append("place_flip_chip_array -physical_lib_cell {bump_cell} -prefix \"bump_{c}.{r}\" -start_point {{x} {y}} "
-                          "-number 1 -delta {{pitch} {pitch}} -repeat {1 1} -cell_origin center".format(
+            output.append("place_flip_chip_array -physical_lib_cell {bump_cell} -prefix \"bump_{c}.{r}\" -start_point {{{x} {y}}} "
+                          "-number 1 -delta {{{pitch} {pitch}}} -repeat {{1 1}} -cell_origin center".format(
                           bump_cell=bump.custom_cell if bump.custom_cell is not None else bumps.cell, 
                           c=bump.x, r=bump.y, x=bump_offset_x + Decimal(str(bump.x - 1)) * Decimal(str(bumps.pitch)),
                           y=bump_offset_y + Decimal(str(bump.y - 1)) * Decimal(str(bumps.pitch)), pitch=bumps.pitch))
@@ -433,7 +434,7 @@ HammerTechnologyUtils.to_plain_item))
                     output.append('set_flip_chip_type -personality "Signal" [get_selection]')
                     output.append('change_selection ""')
                      
-            output.append("create_route_guide -coordinate {{llx1} {lly1} {urx1} {ury1}} -no_signal_layers {{{layer}}} "
+            output.append("create_route_guide -coordinate {{{llx1} {lly1} {urx1} {ury1}}} -no_signal_layers {{{layer}}} "
                           "-zero_min_spacing".format(llx1="get_attribute [get_cells -all bump_{c}.{r}*] bbox_llx".format(c=bump.x, r=bump.y),                                           lly1="get_attribute [get_cells -all bump_{c}.{r}*] bbox_lly".format(c=bump.x, r=bump.y), 
                                                      urx1="get_attribute [get_cells -all bump_{c}.{r}*] bbox_urx".format(c=bump.x, r=bump.y), 
                                                      ury1="get_attribute [get_cells -all bump_{c}.{r}*] bbox_ury".format(c=bump.x, r=bump.y), 
@@ -449,11 +450,12 @@ HammerTechnologyUtils.to_plain_item))
         signal_ref = self.get_setting("par.icc.Signal_ref")
     
         # Select the P/G drivers based on the ref cell name
-        output.append('change_selection [get_cells -all -hierarchical -filter {ref_name="{VDD}" || ref_name="{VDDIO}" || ref_name="{VSS}" || ref_name="{VSSIO}"}]'.format(VDD=vdd_ref, VDDIO=vddio_ref, VSS=vss_ref, VSSIO=vssioref))
+        output.append('change_selection [get_cells -all -hierarchical -filter {{ref_name="{VDD}" || ref_name="{VDDIO}" || ref_name="{VSS}" || ref_name="{VSSIO}"}}]'.format(
+            VDD=vdd_ref, VDDIO=vddio_ref, VSS=vss_ref, VSSIO=vssio_ref))
         output.append('set_flip_chip_type -personality "PG" [get_selection]') 
             
         # Select the Signal drivers based on the ref cell name
-        output.append('change_selection [get_cells -all -hierarchical -filter {ref_name="{Signal}"}]'.format(Signal=signal_ref))
+        output.append('change_selection [get_cells -all -hierarchical -filter {{ref_name="{Signal}"}}]'.format(Signal=signal_ref))
         output.append('set_flip_chip_type -personality "Signal" [get_selection]')
             
         output.append("assign_flip_chip_nets")
@@ -623,7 +625,7 @@ HammerTechnologyUtils.to_plain_item))
         results = [
             "# Power strap definition for layer {} (rails):\n".format(layer_name),
             "set_preroute_special_rules -name splrule -pin_layer {layer}"
-            " -macro_cells {{cells}}".format(layer=layer_name, cells=master)
+            " -macro_cells {{{cells}}}".format(layer=layer_name, cells=master)
             # need to find how to set bottom and top via stack layers in Synopsys ICC    
                   ]
          

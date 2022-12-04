@@ -5,17 +5,17 @@
 #
 #  See LICENSE for license details.
 
-from hammer_vlsi import HammerSimTool, HammerToolStep, HammerLSFSubmitCommand, HammerLSFSettings
-from hammer_vlsi import SynopsysTool
-from hammer_logging import HammerVLSILogging
+from hammer.vlsi import HammerSimTool, HammerToolStep, HammerLSFSubmitCommand, HammerLSFSettings
+from hammer.vlsi import SynopsysTool
+from hammer.logging import HammerVLSILogging
 
 from typing import Dict, List, Optional, Callable, Tuple
 
-from hammer_vlsi import FlowLevel, TimeValue
+from hammer.vlsi import FlowLevel, TimeValue
 
-import hammer_utils
-import hammer_tech
-from hammer_tech import HammerTechnologyUtils
+import hammer.utils as hammer_utils
+import hammer.tech as hammer_tech
+from hammer.tech import HammerTechnologyUtils
 
 import os
 import re
@@ -199,7 +199,8 @@ class VCS(HammerSimTool, SynopsysTool):
                 args.extend(["+sdfverbose"])
                 args.extend(["-negdelay"])
                 args.extend(["-sdf"])
-                args.extend(["max:{top}:{sdf}".format(run_dir=self.run_dir, top=top_module, sdf=os.path.join(os.getcwd(), self.sdf_file))])
+                if self.sdf_file:
+                    args.extend(["max:{top}:{sdf}".format(top=top_module, sdf=os.path.join(os.getcwd(), self.sdf_file))])
             else:
                 args.extend(["+notimingcheck"])
                 args.extend(["+delay_mode_zero"])

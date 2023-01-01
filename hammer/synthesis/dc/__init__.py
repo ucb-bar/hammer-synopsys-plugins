@@ -37,11 +37,6 @@ class DC(HammerSynthesisTool, SynopsysTool):
     def tool_config_prefix(self) -> str:
         return "synthesis.dc"
 
-    ## FIXME: this is abstract by SynopsysTool
-    @property
-    def post_synth_sdc(self) -> Optional[str]:
-      return None
-
     # TODO(edwardw): move this to synopsys common
     def generate_tcl_preferred_routing_direction(self):
         """
@@ -88,9 +83,7 @@ class DC(HammerSynthesisTool, SynopsysTool):
 
         output = re.sub(congestion_map_search_and_capture, "\g<1>false\g<3>", dc_tcl)
 
-        f = open(dc_tcl_path, 'w')
-        f.write(output)
-        f.close()
+        self.write_contents_to_path(output, dc_tcl_path)
 
     def main_step(self) -> bool:
         # TODO(edwardw): move most of this to Synopsys common since it's not DC-specific.
@@ -117,13 +110,11 @@ class DC(HammerSynthesisTool, SynopsysTool):
 
         # Generate preferred_routing_directions.
         preferred_routing_directions_fragment = os.path.join(self.run_dir, "preferred_routing_directions.tcl")
-        with open(preferred_routing_directions_fragment, "w") as f:
-            f.write(self.generate_tcl_preferred_routing_direction())
+        self.write_contents_to_path(self.generate_tcl_preferred_routing_direction(), preferred_routing_directions_fragment)
 
         # Generate clock constraints.
         clock_constraints_fragment = os.path.join(self.run_dir, "clock_constraints_fragment.tcl")
-        with open(clock_constraints_fragment, "w") as f:
-            f.write(self.sdc_clock_constraints)
+        self.write_contents_to_path(self.sdc_clock_constraints, clock_constraints_fragment)
 
         # Get libraries.
         lib_args = self.technology.read_libs([

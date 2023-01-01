@@ -141,11 +141,11 @@ class DC(HammerSynthesisTool, SynopsysTool):
 
         # Build args.
         syn_script_path = Path(self.technology.cache_dir) / "run-synthesis"
-        syn_script_txt = importlib.resources.read_text("hammer.synthesis.dc.tools", "run-synthesis")
+        syn_script_txt = importlib.resources.files("hammer.synthesis.dc.tools").joinpath("run-synthesis").read_text()
         syn_script_path.write_text(syn_script_txt)
 
         tcl_path = Path(self.technology.cache_dir) / "find_regs.tcl"
-        tcl_txt = importlib.resources.read_text("hammer.synthesis.dc.tools", "find_regs.tcl")
+        tcl_txt = importlib.resources.files("hammer.synthesis.dc.tools").joinpath("find_regs.tcl").read_text()
         tcl_path.write_text(tcl_txt)
 
         args = [

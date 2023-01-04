@@ -25,9 +25,6 @@ from multiprocessing import Process
 
 class VCS(HammerSimTool, SynopsysTool):
 
-    def post_synth_sdc(self) -> Optional[str]:
-        pass
-
     def tool_config_prefix(self) -> str:
         return "sim.vcs"
 
@@ -262,64 +259,62 @@ class VCS(HammerSimTool, SynopsysTool):
             saif_mode = "none"
 
         if self.level == FlowLevel.RTL and saif_mode != "none":
-            with open(self.run_tcl_path, "w") as f:
-                find_regs_run_tcl = []
-                if saif_mode != "none":
-                    if saif_mode == "time":
-                        stime = TimeValue(saif_start_time[0])
-                        find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
-                    elif saif_mode == "trigger_raw":
-                        find_regs_run_tcl.append(saif_start_trigger_raw)
-                        find_regs_run_tcl.append("run")
-                    elif saif_mode == "full":
-                        pass
-                    # start saif
-                    find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
-                    find_regs_run_tcl.append("config endofsim noexit")
-                    if saif_mode == "time":
-                        etime = TimeValue(saif_end_time)
-                        find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
-                    elif saif_mode == "trigger_raw":
-                        find_regs_run_tcl.append(saif_end_trigger_raw)
-                        find_regs_run_tcl.append("run")
-                    elif saif_mode == "full":
-                        find_regs_run_tcl.append("run")
-                    # stop saif
-                    find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
-                find_regs_run_tcl.append("run")
-                find_regs_run_tcl.append("exit")
-                f.write("\n".join(find_regs_run_tcl))
+            find_regs_run_tcl = []
+            if saif_mode != "none":
+                if saif_mode == "time":
+                    stime = TimeValue(saif_start_time[0])
+                    find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
+                elif saif_mode == "trigger_raw":
+                    find_regs_run_tcl.append(saif_start_trigger_raw)
+                    find_regs_run_tcl.append("run")
+                elif saif_mode == "full":
+                    pass
+                # start saif
+                find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
+                find_regs_run_tcl.append("config endofsim noexit")
+                if saif_mode == "time":
+                    etime = TimeValue(saif_end_time)
+                    find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
+                elif saif_mode == "trigger_raw":
+                    find_regs_run_tcl.append(saif_end_trigger_raw)
+                    find_regs_run_tcl.append("run")
+                elif saif_mode == "full":
+                    find_regs_run_tcl.append("run")
+                # stop saif
+                find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
+            find_regs_run_tcl.append("run")
+            find_regs_run_tcl.append("exit")
+            self.write_contents_to_path("\n".join(find_regs_run_tcl), self.run_tcl_path)
 
         if self.level.is_gatelevel():
-            with open(self.run_tcl_path, "w") as f:
-                find_regs_run_tcl = []
-                find_regs_run_tcl.append("source " + force_regs_filename)
-                if saif_mode != "none":
-                    if saif_mode == "time":
-                        stime = TimeValue(saif_start_time[0])
-                        find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
-                    elif saif_mode == "trigger_raw":
-                        find_regs_run_tcl.append(saif_start_trigger_raw)
-                        find_regs_run_tcl.append("run")
-                    elif saif_mode == "full":
-                        pass
-                    # start saif
-                    find_regs_run_tcl.append("power -gate_level on")
-                    find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
-                    find_regs_run_tcl.append("config endofsim noexit")
-                    if saif_mode == "time":
-                        etime = TimeValue(saif_end_time)
-                        find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
-                    elif saif_mode == "trigger_raw":
-                        find_regs_run_tcl.append(saif_end_trigger_raw)
-                        find_regs_run_tcl.append("run")
-                    elif saif_mode == "full":
-                        find_regs_run_tcl.append("run")
-                    # stop saif
-                    find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
-                find_regs_run_tcl.append("run")
-                find_regs_run_tcl.append("exit")
-                f.write("\n".join(find_regs_run_tcl))
+            find_regs_run_tcl = []
+            find_regs_run_tcl.append("source " + force_regs_filename)
+            if saif_mode != "none":
+                if saif_mode == "time":
+                    stime = TimeValue(saif_start_time[0])
+                    find_regs_run_tcl.append("run {start}ns".format(start=stime.value_in_units("ns")))
+                elif saif_mode == "trigger_raw":
+                    find_regs_run_tcl.append(saif_start_trigger_raw)
+                    find_regs_run_tcl.append("run")
+                elif saif_mode == "full":
+                    pass
+                # start saif
+                find_regs_run_tcl.append("power -gate_level on")
+                find_regs_run_tcl.append("power {dut}".format(dut=tb_prefix))
+                find_regs_run_tcl.append("config endofsim noexit")
+                if saif_mode == "time":
+                    etime = TimeValue(saif_end_time)
+                    find_regs_run_tcl.append("run {end}ns".format(end=(etime.value_in_units("ns") - stime.value_in_units("ns"))))
+                elif saif_mode == "trigger_raw":
+                    find_regs_run_tcl.append(saif_end_trigger_raw)
+                    find_regs_run_tcl.append("run")
+                elif saif_mode == "full":
+                    find_regs_run_tcl.append("run")
+                # stop saif
+                find_regs_run_tcl.append("power -report ucli.saif 1e-9 {dut}".format(dut=tb_prefix))
+            find_regs_run_tcl.append("run")
+            find_regs_run_tcl.append("exit")
+            self.write_contents_to_path("\n".join(find_regs_run_tcl), self.run_tcl_path)
 
         vcs_bin = self.get_setting("sim.vcs.vcs_bin")
         for benchmark in self.benchmarks:

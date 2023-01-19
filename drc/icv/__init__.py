@@ -159,7 +159,7 @@ class ICVDRC(HammerDRCTool):
             # Config runset file
             config_rs = self.get_setting("drc.icv.config_runset")  # type: Optional[str]
             if config_rs is not None:
-                f.write(" -config_runset" + config_rs)
+                f.write(" -runset_config " + config_rs)
         return True
 
     @property

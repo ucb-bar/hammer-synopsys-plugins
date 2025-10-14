@@ -6,7 +6,7 @@
 #  See LICENSE for license details.
 
 from hammer.vlsi import HammerSimTool, HammerToolStep, HammerLSFSubmitCommand, HammerLSFSettings
-from hammer.vlsi import SynopsysTool
+from hammer.common.synopsys import SynopsysTool
 from hammer.logging import HammerVLSILogging
 
 from typing import Dict, List, Optional, Callable, Tuple
@@ -100,10 +100,13 @@ class VCS(HammerSimTool, SynopsysTool):
 
         with open(self.access_tab_file_path, "w") as f:
             with open(abspath_seq_cells) as seq_file:
+                cells = {}
                 seq_json = json.load(seq_file)
                 assert isinstance(seq_json, List), "list of all sequential cells should be a json list of strings not {}".format(type(seq_json))
                 for cell in seq_json:
-                    f.write("acc=wn:{cell_name}\n".format(cell_name=cell))
+                    if cell not in cells:
+                        f.write("acc:=wn: {cell_name}.*\n".format(cell_name=cell))
+                        cells[cell] = True
 
         abspath_all_regs = os.path.join(os.getcwd(), self.all_regs)
         if not os.path.isfile(abspath_all_regs):
@@ -117,7 +120,7 @@ class VCS(HammerSimTool, SynopsysTool):
                     path = reg["path"]
                     path = '.'.join(path.split('/'))
                     pin = reg["pin"]
-                    f.write("force -deposit {" + tb_prefix + "." + path + " ." + pin + "} " + str(force_val) + "\n")
+                    f.write("force -deposit {" + tb_prefix + "." + path + "." + pin + "} " + str(force_val) + "\n")
 
         return True
 
@@ -133,6 +136,10 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # We are switching working directories and we still need to find paths
         abspath_input_files = list(map(lambda name: os.path.join(os.getcwd(), name), self.input_files))
+        for v in abspath_input_files:
+            if not os.path.exists(v):
+                self.logger.error("Cannot find %s" % v)
+                return False
 
         top_module = self.top_module
         compiler_cc_opts = self.get_setting("sim.inputs.compiler_cc_opts", [])
@@ -152,6 +159,14 @@ class VCS(HammerSimTool, SynopsysTool):
           "-debug_access+all" # since I-2014.03, req'd for FSDB dumping & force regs
         ]
 
+        use_gui = self.get_setting("sim.gui")
+        if use_gui:
+            verdi_home = self.get_setting("sim.vcs.verdi_home")
+            if not os.path.exists(verdi_home):
+                self.logger.error("VERDI home not found as expected at {0}".format(verdi_home))
+                return False
+            args.append("-kdb")
+        
         if self.get_setting("sim.vcs.fgp") and self.version() >= self.version_number("M-2017.03"):
             args.append("-fgp")
 
@@ -325,6 +340,15 @@ class VCS(HammerSimTool, SynopsysTool):
 
         # setup simulation arguments
         args = [ self.simulator_executable_path ]
+
+        use_gui = self.get_setting("sim.gui")
+        if use_gui:
+            verdi_home = self.get_setting("sim.vcs.verdi_home")
+            if not os.path.exists(verdi_home):
+                self.logger.error("VERDI home not found as expected at {0}".format(verdi_home))
+                return False
+            args.append("-gui")
+
         args.extend(exec_flags_prepend)
         if self.get_setting("sim.vcs.fgp") and self.version() >= self.version_number("M-2017.03"):
             # num_threads is in addition to a master thread, so reduce by 1
